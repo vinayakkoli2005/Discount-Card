@@ -2,9 +2,56 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { Text, View } from "react-native";
+import React from "react";
 
 import "./globals.css";
 import GlobalProvider from "@/lib/global-provider";
+
+// Prevent splash from auto-hiding (important)
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+/**
+ * Simple global error boundary
+ * Catches render-time crashes and prevents white screen
+ */
+class RootErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, info: any) {
+    console.error("🔥 Global crash caught:", error, info);
+
+    // 🔴 If you later add Sentry, report here:
+    // Sentry.Native.captureException(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View className="flex-1 items-center justify-center bg-white px-6">
+          <Text className="text-xl font-rubik-bold mb-2">
+            Something went wrong
+          </Text>
+          <Text className="text-gray-500 text-center">
+            Please restart the app.
+          </Text>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -15,22 +62,23 @@ export default function RootLayout() {
     "Rubik-Regular": require("../assets/fonts/Rubik-Regular.ttf"),
     "Rubik-SemiBold": require("../assets/fonts/Rubik-SemiBold.ttf"),
   });
-  console.log("fontsLoaded:", fontsLoaded);
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
 
+  // 🔒 Block render until fonts are ready
   if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <GlobalProvider>
-      <Stack  screenOptions={{headerShown: false}}/>
-    </GlobalProvider>
-  )
-
+    <RootErrorBoundary>
+      <GlobalProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </GlobalProvider>
+    </RootErrorBoundary>
+  );
 }

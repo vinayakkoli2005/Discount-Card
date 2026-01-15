@@ -8,8 +8,10 @@ interface Props {
   onPress?: () => void;
 }
 
-export const FeaturedCard = ({ item:{image,rating, name, address, Price}, onPress }: Props) => {
+export const FeaturedCard = ({ item:{image,rating, name, address, Price, category}, onPress }: Props) => {
+
   return (
+    
     <TouchableOpacity
       onPress={onPress}
       className="flex flex-col items-start w-60 h-80 relative"
@@ -50,7 +52,7 @@ export const FeaturedCard = ({ item:{image,rating, name, address, Price}, onPres
   );
 };
 
-export const Card = ({ item:{image,rating, name, address, Price}, onPress }: Props) => {
+export const Card = ({ item:{image,rating, name, address, Price,category}, onPress }: Props) => {
   return (
     <TouchableOpacity
       className="flex-1 w-full mt-4 px-3 py-4 rounded-lg bg-white shadow-lg shadow-black-100/70 relative"
@@ -74,7 +76,7 @@ export const Card = ({ item:{image,rating, name, address, Price}, onPress }: Pro
 
         <View className="flex flex-row items-center justify-between mt-2">
           <Text className="text-base font-rubik-bold text-primary-300">
-            ${Price}
+            {category}
           </Text>
           <Image
             source={icons.heart}

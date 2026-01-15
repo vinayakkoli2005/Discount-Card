@@ -16,7 +16,16 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.discountcard"
+      "package": "com.ds.discountcard",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDGVnAkQrNaE8aEgemJ1SujWYjNzyZrUpM"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -46,10 +55,17 @@
             "./assets/fonts/Rubik-SemiBold.ttf"
           ]
         }
-      ]
+      ],
+      "sentry-expo"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "566fcd96-fbd7-4b0d-a150-7667c2b319f6"
+      }
     }
   }
 }

@@ -12,8 +12,9 @@ import {
 import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
 
+
 export const config = {
-  Platform: 'com.ds.discount-card',
+  Platform: 'com.ds.discountcard',
   endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
   projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
   databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID,
@@ -21,7 +22,7 @@ export const config = {
   reviewsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REVIEWS_COLLECTION_ID,
   agentsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_AGENTS_COLLECTION_ID,
   propertiesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PROPERTIES_COLLECTION_ID,
-  
+  storeImagesBucketId: process.env.EXPO_PUBLIC_APPWRITE_STORE_IMAGES_BUCKET_ID,  
 };
 
 export const client = new Client();
@@ -29,6 +30,13 @@ client
   .setEndpoint(config.endpoint!)
   .setProject(config.projectId!)
   .setPlatform(config.Platform!);
+
+  console.log(
+  "APPWRITE ENV CHECK:",
+  config.endpoint,
+  config.projectId
+);
+
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);
@@ -74,7 +82,6 @@ export async function isLoggedIn(): Promise<boolean> {
     return false;
   }
 }
-
 
 export async function logout() {
   try {
@@ -194,3 +201,171 @@ export async function getPropertyById({ id }: { id: string }) {
     return null;
   }
 }
+
+export async function getStores({
+  category,
+  query,
+  limit = 10,
+  offset = 0,
+}: {
+  category?: string;
+  query?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  try {
+    const buildQuery = [
+      Query.orderDesc("$createdAt"),
+      Query.limit(limit),          // ✅ page size
+      Query.offset(offset),        // ✅ pagination cursor
+    ];
+
+    // Filter by category
+    if (category && category !== "All") {
+      buildQuery.push(Query.equal("category", category));
+    }
+
+    // Search by name or address
+    if (query) {
+      buildQuery.push(
+        Query.or([
+          Query.search("name", query),
+          Query.search("address", query),
+        ])
+      );
+    }
+
+    const result = await databases.listDocuments(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      buildQuery
+    );
+
+    return result.documents;
+  } catch (error) {
+    console.error("getStores error:", error);
+    return [];
+  }
+}
+
+export async function getStoreById({ id }: { id: string }) {
+  try {
+    const doc = await databases.getDocument(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      id,
+      [
+        Query.select([
+          "*",
+          "agent.*",
+          "reviews.*",
+          "gallery.*",
+        ]),
+      ]
+    );
+
+    return {
+      ...doc,
+
+      // guaranteed safe fields
+      reviews: doc.reviews ?? [],
+      gallery: doc.gallery ?? [],
+      facilities: doc.facilities ?? [],
+
+      // agent = store owner
+      agent: doc.agent ?? null,
+    };
+  } catch (error) {
+    console.error("getStoreById error:", error);
+    return null;
+  }
+}
+
+
+
+export async function createStore(data: {
+  name: string;
+  category: string;
+  address: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  ownerId: string;
+}) {
+  try {
+    await databases.createDocument(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      ID.unique(),
+      {
+        name: data.name,
+        category: data.category,
+        address: data.address,
+        description: data.description,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        ownerId: data.ownerId,
+
+        // defaults required by schema
+        rating: 0,
+        image:
+          "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
+      }
+    );
+
+    return true;
+  } catch (error) {
+    console.error("createStore error:", error);
+    return false;
+  }
+}
+// export async function uploadStoreImage(uri: string) {
+//   const response = await fetch(uri);
+//   const blob = await response.blob();
+
+//   const file = new File([blob], `store-${Date.now()}.jpg`, {
+//     type: "image/jpeg",
+//   });
+
+//   const uploaded = await storage.createFile(
+//     config.storeImagesBucketId!,
+//     ID.unique(),
+//     file
+//   );
+
+//   return storage.getFileView(
+//     config.storeImagesBucketId!,
+//     uploaded.$id
+//   );
+// }
+
+
+// Get stores owned by current user
+
+
+export async function getMyStores(ownerId: string) {
+  try {
+    if (!ownerId) return [];
+    const response = await databases.listDocuments(
+      config.databaseId!,
+      config.propertiesCollectionId!, // 👈 your stores collection
+      [Query.equal("ownerId", ownerId)]
+    );
+
+    return response.documents;
+  } catch (error) {
+    console.error("getMyStores error:", error);
+    return [];
+  }
+}
+export function isValidStore(store: any) {
+  return (
+    store &&
+    typeof store.$id === "string" &&
+    typeof store.name === "string" &&
+    typeof store.latitude === "number" &&
+    typeof store.longitude === "number"
+  );
+}
+
+

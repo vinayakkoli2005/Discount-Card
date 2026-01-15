@@ -55,17 +55,27 @@ export const featuredCards = [
   },
 ];
 
+// export const categories = [
+//   { title: "All", category: "All" },
+//   { title: "Houses", category: "House" },
+//   { title: "Condos", category: "Condos" },
+//   { title: "Duplexes", category: "Duplexes" },
+//   { title: "Studios", category: "Studios" },
+//   { title: "Villas", category: "Villa" },
+//   { title: "Apartments", category: "Apartments" },
+//   { title: "Townhomes", category: "Townhomes" },
+//   { title: "Others", category: "Others" },
+// ];
 export const categories = [
   { title: "All", category: "All" },
-  { title: "Houses", category: "House" },
-  { title: "Condos", category: "Condos" },
-  { title: "Duplexes", category: "Duplexes" },
-  { title: "Studios", category: "Studios" },
-  { title: "Villas", category: "Villa" },
-  { title: "Apartments", category: "Apartments" },
-  { title: "Townhomes", category: "Townhomes" },
-  { title: "Others", category: "Others" },
+  { title: "Gym & Fitness", category: "Gym-and-Fitness" },
+  { title: "Spa & Salon", category: "Spa-and-Salon" },
+  { title: "Grocery", category: "Grocery" },
+  { title: "Apparel", category: "Apparel" },
+  { title: "Automobile", category: "Automobile" },
+  { title: "Entertainment", category: "Entertainment" },
 ];
+
 
 export const settings = [
   {

@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 16.28.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_APPWRITE_PROJECT_ID": "695272a5002c9fe4b025",
+        "EXPO_PUBLIC_APPWRITE_ENDPOINT": "https://sgp.cloud.appwrite.io/v1",
+        "EXPO_PUBLIC_APPWRITE_DATABASE_ID": "69533165003476ee67c0",
+        "EXPO_PUBLIC_APPWRITE_AGENTS_COLLECTION_ID": "agents",
+        "EXPO_PUBLIC_APPWRITE_GALLERIES_COLLECTION_ID": "galleries",
+        "EXPO_PUBLIC_APPWRITE_REVIEWS_COLLECTION_ID": "reviews",
+        "EXPO_PUBLIC_APPWRITE_PROPERTIES_COLLECTION_ID": "properties",
+        "EXPO_PUBLIC_APPWRITE_STORE_IMAGES_BUCKET_ID": "store-images"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
