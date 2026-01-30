@@ -137,11 +137,6 @@ export const storage = new Storage(client);
 //   }
 // }
 
-WebBrowser.maybeCompleteAuthSession();
-
-import { OAuthProvider } from "appwrite";
-import { makeRedirectUri } from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
 
 WebBrowser.maybeCompleteAuthSession();
 
