@@ -11,6 +11,11 @@ import {
 } from "react-native-appwrite";
 import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
+import { makeRedirectUri } from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
+
+
+
 
 
 export const config = {
@@ -74,34 +79,122 @@ export const storage = new Storage(client);
 //     return false;
 //   }
 // }
+// export async function login() {
+//   console.log("🔵 LOGIN START");
+//
+//   try {
+//     console.log("🟡 STEP 1: Calling createOAuth2Token");
+//
+//     const response = await account.createOAuth2Token(
+//       OAuthProvider.Google,
+//       Linking.createURL("/")
+//     );
+//
+//     console.log("✅ STEP 1 SUCCESS");
+//     console.log("OAuth URL:", response?.toString());
+//
+//     console.log("🟡 STEP 2: Opening auth session");
+//
+//     const browserResult = await openAuthSessionAsync(
+//       response.toString(),
+//       Linking.createURL("/")
+//     );
+//
+//     console.log("📦 STEP 2 RESULT:", browserResult);
+//
+//     if (browserResult.type !== "success") {
+//       console.error("❌ STEP 2 FAILED: browserResult.type =", browserResult.type);
+//       throw new Error("OAuth failed");
+//     }
+//
+//     console.log("🟡 STEP 3: Parsing redirect URL");
+//     console.log("Redirect URL:", browserResult.url);
+//
+//     const url = new URL(browserResult.url);
+//     const secret = url.searchParams.get("secret");
+//     const userId = url.searchParams.get("userId");
+//
+//     console.log("Parsed userId:", userId);
+//     console.log("Parsed secret:", secret ? "PRESENT" : "MISSING");
+//
+//     if (!secret || !userId) {
+//       console.error("❌ STEP 3 FAILED: Missing OAuth params", { userId, secret });
+//       throw new Error("Missing OAuth params");
+//     }
+//
+//     console.log("🟡 STEP 4: Creating Appwrite session");
+//
+//     await account.createSession(userId, secret);
+//
+//     console.log("✅ LOGIN SUCCESS");
+//     return true;
+//
+//   } catch (err: any) {
+//     console.error("🔥 LOGIN ERROR OCCURRED");
+//     console.error("Message:", err?.message);
+//     console.error("Full error:", err);
+//     return false;
+//   }
+// }
+
+WebBrowser.maybeCompleteAuthSession();
+
+import { OAuthProvider } from "appwrite";
+import { makeRedirectUri } from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
+
 export async function login() {
   try {
-    const response = await account.createOAuth2Token(
-      OAuthProvider.Google,
-      Linking.createURL("/")
+    console.log("🔵 LOGIN START");
+
+    // Create redirect URI (works in Expo, Dev Client, APK)
+    const redirectUri = makeRedirectUri({
+      scheme: "appwrite-callback-695272a5002c9fe4b025",
+      preferLocalhost: true,
+    });
+
+    console.log("Redirect URI:", redirectUri);
+
+    // Create OAuth login URL
+    const loginUrl = await account.createOAuth2Token({
+      provider: OAuthProvider.Google,
+      success: redirectUri,
+      failure: redirectUri,
+    });
+
+    console.log("OAuth URL:", loginUrl);
+
+    // Open browser and listen for redirect back to app
+    const result = await WebBrowser.openAuthSessionAsync(
+      loginUrl.toString(),
+      redirectUri
     );
 
-    const browserResult = await openAuthSessionAsync(
-      response.toString(),
-      Linking.createURL("/")
-    );
+    console.log("OAuth Result:", result);
 
-    if (browserResult.type !== "success") {
-      throw new Error("OAuth failed");
+    if (result.type !== "success" || !result.url) {
+      throw new Error("OAuth cancelled or failed");
     }
 
-    const url = new URL(browserResult.url);
-    const secret = url.searchParams.get("secret");
+    // Extract credentials from redirect
+    const url = new URL(result.url);
     const userId = url.searchParams.get("userId");
+    const secret = url.searchParams.get("secret");
 
-    if (!secret || !userId) {
-      throw new Error("Missing OAuth params");
+    if (!userId || !secret) {
+      throw new Error("Missing OAuth credentials");
     }
 
+    // Create Appwrite session
     await account.createSession(userId, secret);
+
+    console.log("✅ LOGIN SUCCESS");
     return true;
-  } catch (err) {
-    console.error(err);
+
+  } catch (error) {
+    console.error("🔥 LOGIN FAILED", error);
     return false;
   }
 }

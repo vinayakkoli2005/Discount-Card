@@ -5,7 +5,7 @@ export default {
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "myapp",
+    scheme: "appwrite-callback-695272a5002c9fe4b025",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
 
