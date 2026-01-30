@@ -43,34 +43,65 @@ export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 
+// export async function login() {
+//   try {
+//     const redirectUri = Linking.createURL('/');
+//
+//     const response = await account.createOAuth2Token(
+//       OAuthProvider.Google,
+//       redirectUri
+//     );
+//     if (!response) throw new Error("Create OAuth2 token failed");
+//
+//     const browserResult = await openAuthSessionAsync(
+//       response.toString(),
+//       redirectUri
+//     );
+//     if (browserResult.type !== "success")
+//       throw new Error("Create OAuth2 token failed");
+//
+//     const url = new URL(browserResult.url);
+//     const secret = url.searchParams.get("secret")?.toString();
+//     const userId = url.searchParams.get("userId")?.toString();
+//     if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+//
+//     const session = await account.createSession(userId, secret);
+//     if (!session) throw new Error("Failed to create session");
+//
+//     return true;
+//   } catch (error) {
+//     console.error(error);
+//     return false;
+//   }
+// }
 export async function login() {
   try {
-    const redirectUri = Linking.createURL('/');
-
     const response = await account.createOAuth2Token(
       OAuthProvider.Google,
-      redirectUri
+      Linking.createURL("/")
     );
-    if (!response) throw new Error("Create OAuth2 token failed");
 
     const browserResult = await openAuthSessionAsync(
       response.toString(),
-      redirectUri
+      Linking.createURL("/")
     );
-    if (browserResult.type !== "success")
-      throw new Error("Create OAuth2 token failed");
+
+    if (browserResult.type !== "success") {
+      throw new Error("OAuth failed");
+    }
 
     const url = new URL(browserResult.url);
-    const secret = url.searchParams.get("secret")?.toString();
-    const userId = url.searchParams.get("userId")?.toString();
-    if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+    const secret = url.searchParams.get("secret");
+    const userId = url.searchParams.get("userId");
 
-    const session = await account.createSession(userId, secret);
-    if (!session) throw new Error("Failed to create session");
+    if (!secret || !userId) {
+      throw new Error("Missing OAuth params");
+    }
 
+    await account.createSession(userId, secret);
     return true;
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     return false;
   }
 }
