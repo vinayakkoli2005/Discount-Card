@@ -50,10 +50,10 @@ const SignIn = () => {
             Welcome To Discount Card
           </Text>
           <Text className="text-3xl font-rubik-bold text-black-300 text-center mt-2">
-            Let's get you closer to {'\n'}
+            Let's get you not closer to {'\n'}
             <Text className='text-primary-300'>Your Store</Text>
           </Text>
-          <Text className='text-lg font-rubik text-black-200 text-center mt-12'>
+          <Text className='text-lg font-rubik text-black-200 text-center '>
             Login to Discount Card with Google
           </Text>
           <TouchableOpacity onPress={handleLogin} className="bg-white rounded-full w-full py-4 mt-5 shadow-lg shadow-zinc-900" >
