@@ -48,95 +48,6 @@ export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 
-// export async function login() {
-//   try {
-//     const redirectUri = Linking.createURL('/');
-//
-//     const response = await account.createOAuth2Token(
-//       OAuthProvider.Google,
-//       redirectUri
-//     );
-//     if (!response) throw new Error("Create OAuth2 token failed");
-//
-//     const browserResult = await openAuthSessionAsync(
-//       response.toString(),
-//       redirectUri
-//     );
-//     if (browserResult.type !== "success")
-//       throw new Error("Create OAuth2 token failed");
-//
-//     const url = new URL(browserResult.url);
-//     const secret = url.searchParams.get("secret")?.toString();
-//     const userId = url.searchParams.get("userId")?.toString();
-//     if (!secret || !userId) throw new Error("Create OAuth2 token failed");
-//
-//     const session = await account.createSession(userId, secret);
-//     if (!session) throw new Error("Failed to create session");
-//
-//     return true;
-//   } catch (error) {
-//     console.error(error);
-//     return false;
-//   }
-// }
-// export async function login() {
-//   console.log("🔵 LOGIN START");
-//
-//   try {
-//     console.log("🟡 STEP 1: Calling createOAuth2Token");
-//
-//     const response = await account.createOAuth2Token(
-//       OAuthProvider.Google,
-//       Linking.createURL("/")
-//     );
-//
-//     console.log("✅ STEP 1 SUCCESS");
-//     console.log("OAuth URL:", response?.toString());
-//
-//     console.log("🟡 STEP 2: Opening auth session");
-//
-//     const browserResult = await openAuthSessionAsync(
-//       response.toString(),
-//       Linking.createURL("/")
-//     );
-//
-//     console.log("📦 STEP 2 RESULT:", browserResult);
-//
-//     if (browserResult.type !== "success") {
-//       console.error("❌ STEP 2 FAILED: browserResult.type =", browserResult.type);
-//       throw new Error("OAuth failed");
-//     }
-//
-//     console.log("🟡 STEP 3: Parsing redirect URL");
-//     console.log("Redirect URL:", browserResult.url);
-//
-//     const url = new URL(browserResult.url);
-//     const secret = url.searchParams.get("secret");
-//     const userId = url.searchParams.get("userId");
-//
-//     console.log("Parsed userId:", userId);
-//     console.log("Parsed secret:", secret ? "PRESENT" : "MISSING");
-//
-//     if (!secret || !userId) {
-//       console.error("❌ STEP 3 FAILED: Missing OAuth params", { userId, secret });
-//       throw new Error("Missing OAuth params");
-//     }
-//
-//     console.log("🟡 STEP 4: Creating Appwrite session");
-//
-//     await account.createSession(userId, secret);
-//
-//     console.log("✅ LOGIN SUCCESS");
-//     return true;
-//
-//   } catch (err: any) {
-//     console.error("🔥 LOGIN ERROR OCCURRED");
-//     console.error("Message:", err?.message);
-//     console.error("Full error:", err);
-//     return false;
-//   }
-// }
-
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -438,28 +349,6 @@ export async function createStore(data: {
     return false;
   }
 }
-// export async function uploadStoreImage(uri: string) {
-//   const response = await fetch(uri);
-//   const blob = await response.blob();
-
-//   const file = new File([blob], `store-${Date.now()}.jpg`, {
-//     type: "image/jpeg",
-//   });
-
-//   const uploaded = await storage.createFile(
-//     config.storeImagesBucketId!,
-//     ID.unique(),
-//     file
-//   );
-
-//   return storage.getFileView(
-//     config.storeImagesBucketId!,
-//     uploaded.$id
-//   );
-// }
-
-
-// Get stores owned by current user
 
 
 export async function getMyStores(ownerId: string) {
