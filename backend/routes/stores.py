@@ -21,34 +21,60 @@ def get_stores(
 
     cache_key = f"stores:{limit}:{offset}:{query or 'all'}"
 
-    # ✅ READ cache
+    # ✅ CACHE READ
     cached = get_cache(cache_key)
     if cached:
         return {"source": "cache", "data": cached}
 
-    queries = [
-        Query.limit(limit),
-        Query.offset(offset),
-        Query.order_desc("$createdAt"),
-    ]
-
-    # ✅ SAFE SEARCH (NO Query.or_)
-    if query:
-        queries.append(Query.search("name", query))
-        queries.append(Query.search("address", query))
-
     try:
-        result = databases.list_documents(
-            DATABASE_ID,
-            STORES_COLLECTION_ID,
-            queries=queries,
-        )
+        documents = []
+
+        # 🔍 SEARCH (MATCH JS SDK BEHAVIOR)
+        if query:
+            by_name = databases.list_documents(
+                DATABASE_ID,
+                STORES_COLLECTION_ID,
+                queries=[
+                    Query.search("name", query),
+                    Query.limit(limit),
+                    Query.offset(offset),
+                ],
+            )
+
+            by_address = databases.list_documents(
+                DATABASE_ID,
+                STORES_COLLECTION_ID,
+                queries=[
+                    Query.search("address", query),
+                    Query.limit(limit),
+                    Query.offset(offset),
+                ],
+            )
+
+            # 🔁 MERGE + DEDUPLICATE
+            merged = {}
+            for doc in by_name["documents"] + by_address["documents"]:
+                merged[doc["$id"]] = doc
+
+            documents = list(merged.values())
+
+        # 📦 NO SEARCH → NORMAL LISTING
+        else:
+            result = databases.list_documents(
+                DATABASE_ID,
+                STORES_COLLECTION_ID,
+                queries=[
+                    Query.order_desc("$createdAt"),
+                    Query.limit(limit),
+                    Query.offset(offset),
+                ],
+            )
+            documents = result["documents"]
+
     except Exception as e:
-        # show exact error in Render logs
         raise HTTPException(status_code=500, detail=str(e))
 
-    documents = result["documents"]
-
+    # ✅ CACHE WRITE
     set_cache(cache_key, documents)
 
     return {"source": "db", "data": documents}
