@@ -8,7 +8,7 @@ router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
-
+#yyoo
 
 @router.get("/")
 def get_stores(
