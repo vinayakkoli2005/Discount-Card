@@ -5,11 +5,6 @@ type FetchStoresParams = {
   offset?: number;
   query?: string;
 };
-type FetchStoresParams = {
-  limit?: number;
-  offset?: number;
-  query?: string;
-};
 
 export async function fetchStores({
   limit = 10,
