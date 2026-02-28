@@ -21,7 +21,7 @@ import { Card } from "@/components/Cards";
 import Filters from "@/components/Filters";
 import NoResults from "@/components/NoResults";
 
-import { getStores } from "@/lib/appwrite";
+import { fetchStores } from "@/lib/api";
 import { getDistanceInKm } from "@/lib/distance";
 
 const PAGE_SIZE = 10;
@@ -98,7 +98,7 @@ const Explore = () => {
     setPage(0);
     setHasMore(true);
 
-    const firstBatch = await getStores({
+    const firstBatch = await fetchStores({
       category: params.filter,
       query: params.query,
       limit: PAGE_SIZE,
@@ -118,7 +118,7 @@ const Explore = () => {
 
     const nextPage = page + 1;
 
-    const nextBatch = await getStores({
+    const nextBatch = await fetchStores({
       category: params.filter,
       query: params.query,
       limit: PAGE_SIZE,

@@ -15,11 +15,14 @@ def get_stores(
     limit: int = 10,
     offset: int = 0,
     query: str | None = None,
+    category: str | None = None,
 ):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
-    cache_key = f"stores:{limit}:{offset}:{query or 'all'}"
+    cache_key = (
+        f"stores:{limit}:{offset}:{query or 'all'}:{category or 'all'}"
+    )
 
     # ✅ CACHE READ
     cached = get_cache(cache_key)
@@ -31,10 +34,15 @@ def get_stores(
 
         # 🔍 SEARCH (MATCH JS SDK BEHAVIOR)
         if query:
+            base_filters = []
+            if category and category != "All":
+                base_filters.append(Query.equal("category", category))
+
             by_name = databases.list_documents(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
+                    *base_filters,
                     Query.search("name", query),
                     Query.limit(limit),
                     Query.offset(offset),
@@ -45,6 +53,7 @@ def get_stores(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
+                    *base_filters,
                     Query.search("address", query),
                     Query.limit(limit),
                     Query.offset(offset),
@@ -60,10 +69,15 @@ def get_stores(
 
         # 📦 NO SEARCH → NORMAL LISTING
         else:
+            base_filters = []
+            if category and category != "All":
+                base_filters.append(Query.equal("category", category))
+
             result = databases.list_documents(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
+                    *base_filters,
                     Query.order_desc("$createdAt"),
                     Query.limit(limit),
                     Query.offset(offset),

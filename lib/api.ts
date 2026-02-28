@@ -4,12 +4,14 @@ type FetchStoresParams = {
   limit?: number;
   offset?: number;
   query?: string;
+  category?: string;
 };
 
 export async function fetchStores({
   limit = 10,
   offset = 0,
   query,
+  category,
 }: FetchStoresParams) {
   const url = new URL(STORES_ENDPOINT);
   url.searchParams.set("limit", String(limit));
@@ -17,6 +19,9 @@ export async function fetchStores({
 
   if (query) {
     url.searchParams.set("query", query);
+  }
+  if (category && category !== "All") {
+    url.searchParams.set("category", category);
   }
 
   const res = await fetch(url.toString());
