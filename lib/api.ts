@@ -6,6 +6,15 @@ type FetchStoresParams = {
   query?: string;
   category?: string;
 };
+type CreateStoreParams = {
+  name: string;
+  category: string;
+  address: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  ownerId: string;
+};
 
 export async function fetchStores({
   limit = 10,
@@ -53,4 +62,35 @@ export async function fetchMyStores(ownerId: string) {
 
   const json = await res.json();
   return json.data;
+}
+
+export async function fetchStoreById(id: string) {
+  const res = await fetch(`${STORES_ENDPOINT}${id}`);
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API error:", text);
+    throw new Error("Failed to fetch store");
+  }
+
+  const json = await res.json();
+  return json.data;
+}
+
+export async function createStore(data: CreateStoreParams) {
+  const res = await fetch(STORES_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API error:", text);
+    return false;
+  }
+
+  return true;
 }

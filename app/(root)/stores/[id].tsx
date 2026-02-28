@@ -15,7 +15,7 @@ import images from "@/constants/images";
 import Comment from "@/components/Comment";
 
 import { useAppwrite } from "@/lib/useAppwrite";
-import { getStoreById } from "@/lib/appwrite";
+import { fetchStoreById } from "@/lib/api";
 import { Linking, Alert } from "react-native";
 
 
@@ -24,7 +24,7 @@ const Store = () => {
   const windowHeight = Dimensions.get("window").height;
 
   const { data: store } = useAppwrite({
-    fn: getStoreById,
+    fn: async ({ id }: { id: string }) => fetchStoreById(id),
     params: {
       id: id!,
     },

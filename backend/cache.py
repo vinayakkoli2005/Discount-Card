@@ -18,3 +18,13 @@ def get_cache(key: str):
 
 def set_cache(key: str, data):
     CACHE[key] = (data, time.time())
+
+
+def invalidate_cache(prefix: str | None = None):
+    if prefix is None:
+        CACHE.clear()
+        return
+
+    keys_to_delete = [key for key in CACHE.keys() if key.startswith(prefix)]
+    for key in keys_to_delete:
+        CACHE.pop(key, None)

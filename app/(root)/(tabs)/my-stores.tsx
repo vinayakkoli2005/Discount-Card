@@ -32,10 +32,20 @@ export default function MyStores() {
       let data;
       try {
         data = await fetchMyStores(user.$id);
-      } catch {
-        data = await getMyStores(user.$id);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "MY_STORES_ROUTE_NOT_FOUND"
+        ) {
+          data = await getMyStores(user.$id);
+        } else {
+          throw error;
+        }
       }
       setStores(data.filter(isValidStore));
+    } catch (error) {
+      console.error("MyStores fetch failed:", error);
+      setStores([]);
     } finally {
       setIsReady(true);
     }

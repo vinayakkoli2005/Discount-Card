@@ -13,7 +13,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 
 import { useGlobalContext } from "@/lib/global-provider";
-import { createStore } from "@/lib/appwrite";
+import { createStore } from "@/lib/api";
 import { categories } from "@/constants/data";
 import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
