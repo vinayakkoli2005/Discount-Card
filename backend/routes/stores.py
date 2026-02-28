@@ -110,14 +110,18 @@ def get_stores(
             if category and category != "All":
                 base_filters.append(Query.equal("category", category))
 
+            # Pull enough candidates first, then paginate after merge+dedupe.
+            # This avoids page gaps/duplicates caused by offsetting each branch separately.
+            candidate_limit = max(limit + offset, limit)
+
             by_name = databases.list_documents(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
                     *base_filters,
                     Query.search("name", query),
-                    Query.limit(limit),
-                    Query.offset(offset),
+                    Query.limit(candidate_limit),
+                    Query.offset(0),
                 ],
             )
 
@@ -127,8 +131,8 @@ def get_stores(
                 queries=[
                     *base_filters,
                     Query.search("address", query),
-                    Query.limit(limit),
-                    Query.offset(offset),
+                    Query.limit(candidate_limit),
+                    Query.offset(0),
                 ],
             )
 
@@ -137,7 +141,16 @@ def get_stores(
             for doc in by_name["documents"] + by_address["documents"]:
                 merged[doc["$id"]] = doc
 
-            documents = list(merged.values())
+            merged_documents = list(merged.values())
+
+            # Keep ordering stable across pages
+            merged_documents.sort(
+                key=lambda d: d.get("$createdAt", ""),
+                reverse=True,
+            )
+
+            # Apply pagination only once after merge
+            documents = merged_documents[offset : offset + limit]
 
         # 📦 NO SEARCH → NORMAL LISTING
         else:

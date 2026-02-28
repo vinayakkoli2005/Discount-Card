@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 
 import { useGlobalContext } from "@/lib/global-provider";
-import { isValidStore, getMyStores } from "@/lib/appwrite";
+import { isValidStore } from "@/lib/appwrite";
 import { fetchMyStores } from "@/lib/api";
 
 export default function MyStores() {
@@ -29,19 +29,7 @@ export default function MyStores() {
     try {
       setIsReady(false);
 
-      let data;
-      try {
-        data = await fetchMyStores(user.$id);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message === "MY_STORES_ROUTE_NOT_FOUND"
-        ) {
-          data = await getMyStores(user.$id);
-        } else {
-          throw error;
-        }
-      }
+      const data = await fetchMyStores(user.$id);
       setStores(data.filter(isValidStore));
     } catch (error) {
       console.error("MyStores fetch failed:", error);

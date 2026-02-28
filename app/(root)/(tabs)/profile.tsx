@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState ,  useEffect} from "react";
 
-import { logout, isValidStore, getMyStores } from "@/lib/appwrite";
+import { logout, isValidStore } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
 import { fetchMyStores } from "@/lib/api";
 
@@ -34,19 +34,7 @@ const Profile = () => {
     try {
       setIsReady(false);
 
-      let data;
-      try {
-        data = await fetchMyStores(user.$id);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message === "MY_STORES_ROUTE_NOT_FOUND"
-        ) {
-          data = await getMyStores(user.$id);
-        } else {
-          throw error;
-        }
-      }
+      const data = await fetchMyStores(user.$id);
       setMyStores(data.filter(isValidStore));
     } catch (error) {
       console.error("Profile my stores fetch failed:", error);
