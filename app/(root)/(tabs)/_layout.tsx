@@ -36,23 +36,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 🔍 Explore */}
-      <Tabs.Screen
-        name="explore"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={icons.search}
-              style={{
-                width: 24,
-                height: 24,
-                tintColor: focused ? ACTIVE_COLOR : INACTIVE_COLOR,
-              }}
-            />
-          ),
-        }}
-      />
-
       {/* 🏪 My Store */}
       <Tabs.Screen
         name="my-stores"

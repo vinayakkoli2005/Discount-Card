@@ -11,8 +11,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState ,  useEffect} from "react";
 
-import { logout, getMyStores, isValidStore } from "@/lib/appwrite";
+import { logout, isValidStore, getMyStores } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
+import { fetchMyStores } from "@/lib/api";
 
 
 import icons from "@/constants/icons";
@@ -24,14 +25,25 @@ const Profile = () => {
   const [isReady, setIsReady] = useState(false);
 
   const loadMyStores = async () => {
-    if (!user?.$id) return;
+    if (!user?.$id) {
+      setMyStores([]);
+      setIsReady(true);
+      return;
+    }
 
-    setIsReady(false);
+    try {
+      setIsReady(false);
 
-    const data = await getMyStores(user.$id);
-    setMyStores(data.filter(isValidStore));
-
-    setIsReady(true);
+      let data;
+      try {
+        data = await fetchMyStores(user.$id);
+      } catch {
+        data = await getMyStores(user.$id);
+      }
+      setMyStores(data.filter(isValidStore));
+    } finally {
+      setIsReady(true);
+    }
   };
 
   // 🔄 Refresh on focus

@@ -10,7 +10,8 @@ import { useCallback, useEffect, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 
 import { useGlobalContext } from "@/lib/global-provider";
-import { getMyStores, isValidStore } from "@/lib/appwrite";
+import { isValidStore, getMyStores } from "@/lib/appwrite";
+import { fetchMyStores } from "@/lib/api";
 
 export default function MyStores() {
   const { user } = useGlobalContext();
@@ -19,14 +20,25 @@ export default function MyStores() {
   const [isReady, setIsReady] = useState(false);
 
   const loadMyStores = async () => {
-    if (!user?.$id) return;
+    if (!user?.$id) {
+      setStores([]);
+      setIsReady(true);
+      return;
+    }
 
-    setIsReady(false);
+    try {
+      setIsReady(false);
 
-    const data = await getMyStores(user.$id);
-    setStores(data.filter(isValidStore));
-
-    setIsReady(true);
+      let data;
+      try {
+        data = await fetchMyStores(user.$id);
+      } catch {
+        data = await getMyStores(user.$id);
+      }
+      setStores(data.filter(isValidStore));
+    } finally {
+      setIsReady(true);
+    }
   };
 
   // Initial load

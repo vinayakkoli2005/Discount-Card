@@ -35,3 +35,22 @@ export async function fetchStores({
   const json = await res.json();
   return json.data;
 }
+
+export async function fetchMyStores(ownerId: string) {
+  const url = new URL(`${STORES_ENDPOINT}my`);
+  url.searchParams.set("ownerId", ownerId);
+
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error("MY_STORES_ROUTE_NOT_FOUND");
+    }
+    const text = await res.text();
+    console.error("API error:", text);
+    throw new Error("Failed to fetch my stores");
+  }
+
+  const json = await res.json();
+  return json.data;
+}

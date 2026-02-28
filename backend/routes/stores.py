@@ -10,6 +10,29 @@ DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 #yyoo
 
+@router.get("/my")
+def get_my_stores(ownerId: str):
+    if not DATABASE_ID or not STORES_COLLECTION_ID:
+        raise HTTPException(status_code=500, detail="Server misconfiguration")
+
+    cache_key = f"my-stores:{ownerId}"
+    cached = get_cache(cache_key)
+    if cached is not None:
+        return {"source": "cache", "data": cached}
+
+    try:
+        result = databases.list_documents(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.equal("ownerId", ownerId)],
+        )
+        documents = result["documents"]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    set_cache(cache_key, documents)
+    return {"source": "db", "data": documents}
+
 @router.get("/")
 def get_stores(
     limit: int = 10,
@@ -26,7 +49,7 @@ def get_stores(
 
     # ✅ CACHE READ
     cached = get_cache(cache_key)
-    if cached:
+    if cached is not None:
         return {"source": "cache", "data": cached}
 
     try:

@@ -9,13 +9,14 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { router, useFocusEffect } from "expo-router";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 
 import icons from "@/constants/icons";
 import NoResults from "@/components/NoResults";
 import { Card } from "@/components/Cards";
+import Filters from "@/components/Filters";
 
 import { useGlobalContext } from "@/lib/global-provider";
 import { isValidStore } from "@/lib/appwrite";
@@ -26,6 +27,7 @@ const PAGE_SIZE = 10;
 
 export default function Index() {
   const { user } = useGlobalContext();
+  const params = useLocalSearchParams<{ filter?: string }>();
 
   /* ---------------- SEARCH ---------------- */
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,9 +56,12 @@ export default function Index() {
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const requestVersionRef = useRef(0);
 
   /* ---------------- LOAD FIRST PAGE ---------------- */
   const loadInitialStores = async () => {
+    const requestVersion = ++requestVersionRef.current;
+
     try {
       setIsReady(false);
       setPage(0);
@@ -66,36 +71,30 @@ export default function Index() {
         limit: PAGE_SIZE,
         offset: 0,
         query: debouncedQuery || undefined,
+        category: params.filter,
       });
 
+      if (requestVersion !== requestVersionRef.current) return;
       setStores(firstBatch);
       setHasMore(firstBatch.length === PAGE_SIZE);
     } catch (err) {
       console.error("Initial fetch failed", err);
     } finally {
+      if (requestVersion !== requestVersionRef.current) return;
       setIsReady(true);
     }
   };
 
-  /* initial load */
-  useEffect(() => {
-    loadInitialStores();
-  }, []);
-
-  /* reload on search change */
-  useEffect(() => {
-    loadInitialStores();
-  }, [debouncedQuery]);
-
   useFocusEffect(
     useCallback(() => {
       loadInitialStores();
-    }, [debouncedQuery])
+    }, [debouncedQuery, params.filter])
   );
 
   /* ---------------- LOAD MORE ---------------- */
   const loadMoreStores = async () => {
     if (!hasMore || isFetchingMore) return;
+    const requestVersion = requestVersionRef.current;
 
     try {
       setIsFetchingMore(true);
@@ -105,8 +104,10 @@ export default function Index() {
         limit: PAGE_SIZE,
         offset: nextPage * PAGE_SIZE,
         query: debouncedQuery || undefined,
+        category: params.filter,
       });
 
+      if (requestVersion !== requestVersionRef.current) return;
       setStores((prev) => [...prev, ...nextBatch]);
       setPage(nextPage);
       setHasMore(nextBatch.length === PAGE_SIZE);
@@ -253,6 +254,7 @@ export default function Index() {
             <Text className="text-xl font-rubik-bold text-black-300 mt-6">
               Stores
             </Text>
+            <Filters />
           </View>
         }
       />
