@@ -3,6 +3,7 @@ import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useGlobalContext } from "@/lib/global-provider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function AppLayout() {
   const { loading, isLogged } = useGlobalContext();
@@ -19,5 +20,9 @@ export default function AppLayout() {
     return <Redirect href="/sign-in" />;
   }
 
-  return <Slot />;
+  return (
+    <ErrorBoundary screenName="App">
+      <Slot />
+    </ErrorBoundary>
+  );
 }

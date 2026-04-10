@@ -20,7 +20,7 @@ import { useGlobalContext } from "@/lib/global-provider";
 const SignIn = () => {
   const { refetch, loading, isLogged , user} = useGlobalContext();
   useEffect(() => {
-    if (!loading && isLogged && user) {
+    if (__DEV__ && !loading && isLogged && user) {
       console.log("avatar value:", user.avatar);
       console.log("avatar typeof:", typeof user.avatar);
       console.log("✅ User already logged in:", user);

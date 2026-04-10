@@ -7,7 +7,7 @@ const ACTIVE_COLOR = "#2563EB"; // blue-600
 const INACTIVE_COLOR = "#9CA3AF"; // gray-400
 
 export default function TabsLayout() {
-  console.log("Profile icon:", icons.person);
+  if (__DEV__) console.log("Profile icon:", icons.person);
 
   return (
     <Tabs

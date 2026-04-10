@@ -1,0 +1,10 @@
+import google.generativeai as genai
+
+# Pass your key directly
+genai.configure(api_key="AIzaSyD9djSF2FAWxvoStzviFf00G8BNBaqlazE")
+
+print("Listing all available models for your key:")
+for m in genai.list_models():
+    # Only show models that can actually chat/generate text
+    if 'generateContent' in m.supported_generation_methods:
+        print(f"- {m.name} (Display Name: {m.display_name})")

@@ -9,11 +9,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState ,  useEffect} from "react";
+import { useCallback, useEffect } from "react";
 
-import { logout, isValidStore } from "@/lib/appwrite";
+import { logout } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
-import { fetchMyStores } from "@/lib/api";
+import { useMyStores } from "@/lib/hooks/useMyStores";
 
 
 import icons from "@/constants/icons";
@@ -21,40 +21,17 @@ import icons from "@/constants/icons";
 const Profile = () => {
   const { user, refetch } = useGlobalContext();
 
-  const [myStores, setMyStores] = useState<any[]>([]);
-  const [isReady, setIsReady] = useState(false);
+  const { stores: myStores, isReady, refetch: refetchStores } = useMyStores(user?.$id);
 
-  const loadMyStores = async () => {
-    if (!user?.$id) {
-      setMyStores([]);
-      setIsReady(true);
-      return;
-    }
-
-    try {
-      setIsReady(false);
-
-      const data = await fetchMyStores(user.$id);
-      setMyStores(data.filter(isValidStore));
-    } catch (error) {
-      console.error("Profile my stores fetch failed:", error);
-      setMyStores([]);
-    } finally {
-      setIsReady(true);
-    }
-  };
-
-  // 🔄 Refresh on focus
+  // Refresh on focus
   useFocusEffect(
     useCallback(() => {
-      loadMyStores();
-    }, [user?.$id])
+      refetchStores();
+    }, [refetchStores])
   );
+
   useEffect(() => {
-    console.log("Profile state:", {
-      userId: user?.$id,
-      myStores: myStores.length,
-    });
+    if (__DEV__) console.log("Profile state:", { userId: user?.$id, myStores: myStores.length });
   }, [myStores, user?.$id]);
 
 

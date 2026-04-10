@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import { Store } from "./types/store";
 import {
   Client,
   Account,
@@ -36,11 +37,13 @@ client
   .setProject(config.projectId!)
   .setPlatform(config.Platform!);
 
+  if (__DEV__) {
   console.log(
-  "APPWRITE ENV CHECK:",
-  config.endpoint,
-  config.projectId
-);
+    "APPWRITE ENV CHECK:",
+    config.endpoint,
+    config.projectId
+  );
+}
 
 
 export const avatar = new Avatars(client);
@@ -53,15 +56,14 @@ WebBrowser.maybeCompleteAuthSession();
 
 export async function login() {
   try {
-    console.log("🔵 LOGIN START");
+    if (__DEV__) console.log("🔵 LOGIN START");
 
     // Create redirect URI (works in Expo, Dev Client, APK)
     const redirectUri = makeRedirectUri({
       scheme: "appwrite-callback-695272a5002c9fe4b025",
-      preferLocalhost: true,
     });
 
-    console.log("Redirect URI:", redirectUri);
+    if (__DEV__) console.log("Redirect URI:", redirectUri);
 
     // Create OAuth login URL
     const loginUrl = await account.createOAuth2Token({
@@ -70,7 +72,9 @@ export async function login() {
       failure: redirectUri,
     });
 
-    console.log("OAuth URL:", loginUrl);
+    if (__DEV__) console.log("OAuth URL:", loginUrl);
+
+    if (!loginUrl) throw new Error("Failed to create OAuth URL");
 
     // Open browser and listen for redirect back to app
     const result = await WebBrowser.openAuthSessionAsync(
@@ -78,7 +82,7 @@ export async function login() {
       redirectUri
     );
 
-    console.log("OAuth Result:", result);
+    if (__DEV__) console.log("OAuth Result:", result);
 
     if (result.type !== "success" || !result.url) {
       throw new Error("OAuth cancelled or failed");
@@ -96,7 +100,7 @@ export async function login() {
     // Create Appwrite session
     await account.createSession(userId, secret);
 
-    console.log("✅ LOGIN SUCCESS");
+    if (__DEV__) console.log("✅ LOGIN SUCCESS");
     return true;
 
   } catch (error) {
@@ -132,7 +136,7 @@ export async function getCurrentUser() {
       `?name=${encodeURIComponent(result.name)}` +
       `&project=${config.projectId}`;
 
-    console.log("User Avatar URL:", avatarUrl);
+    if (__DEV__) console.log("User Avatar URL:", avatarUrl);
 
     return {
       ...result,
@@ -366,13 +370,14 @@ export async function getMyStores(ownerId: string) {
     return [];
   }
 }
-export function isValidStore(store: any) {
+export function isValidStore(store: unknown): store is Store {
+  if (!store || typeof store !== "object") return false;
+  const s = store as Record<string, unknown>;
   return (
-    store &&
-    typeof store.$id === "string" &&
-    typeof store.name === "string" &&
-    typeof store.latitude === "number" &&
-    typeof store.longitude === "number"
+    typeof s.$id === "string" &&
+    typeof s.name === "string" &&
+    typeof s.latitude === "number" &&
+    typeof s.longitude === "number"
   );
 }
 

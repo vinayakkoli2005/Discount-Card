@@ -27,7 +27,10 @@ const PAGE_SIZE = 10;
 
 export default function Index() {
   const { user } = useGlobalContext();
-  const params = useLocalSearchParams<{ filter?: string }>();
+  const params = useLocalSearchParams<{ filter?: string | string[] }>();
+  const filterParam = Array.isArray(params.filter)
+    ? params.filter[0]
+    : params.filter;
 
   /* ---------------- SEARCH ---------------- */
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +74,7 @@ export default function Index() {
         limit: PAGE_SIZE,
         offset: 0,
         query: debouncedQuery || undefined,
-        category: params.filter,
+        category: filterParam,
       });
 
       if (requestVersion !== requestVersionRef.current) return;
@@ -88,7 +91,7 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       loadInitialStores();
-    }, [debouncedQuery, params.filter])
+    }, [debouncedQuery, filterParam])
   );
 
   /* ---------------- LOAD MORE ---------------- */
@@ -104,7 +107,7 @@ export default function Index() {
         limit: PAGE_SIZE,
         offset: nextPage * PAGE_SIZE,
         query: debouncedQuery || undefined,
-        category: params.filter,
+        category: filterParam,
       });
 
       if (requestVersion !== requestVersionRef.current) return;

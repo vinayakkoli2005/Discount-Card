@@ -1,3 +1,5 @@
+import { Store } from "./types/store";
+
 const API_BASE_URL = "https://discount-card-api.onrender.com";
 const STORES_ENDPOINT = `${API_BASE_URL}/stores/`;
 type FetchStoresParams = {
@@ -21,7 +23,7 @@ export async function fetchStores({
   offset = 0,
   query,
   category,
-}: FetchStoresParams) {
+}: FetchStoresParams): Promise<Store[]> {
   const url = new URL(STORES_ENDPOINT);
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("offset", String(offset));
@@ -45,7 +47,7 @@ export async function fetchStores({
   return json.data;
 }
 
-export async function fetchMyStores(ownerId: string) {
+export async function fetchMyStores(ownerId: string): Promise<Store[]> {
   const url = new URL(`${STORES_ENDPOINT}my`);
   url.searchParams.set("ownerId", ownerId);
 
@@ -64,7 +66,7 @@ export async function fetchMyStores(ownerId: string) {
   return json.data;
 }
 
-export async function fetchStoreById(id: string) {
+export async function fetchStoreById(id: string): Promise<Store | null> {
   const res = await fetch(`${STORES_ENDPOINT}${id}`);
 
   if (!res.ok) {

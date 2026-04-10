@@ -6,55 +6,25 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { router, useFocusEffect } from "expo-router";
 
 import { useGlobalContext } from "@/lib/global-provider";
-import { isValidStore } from "@/lib/appwrite";
-import { fetchMyStores } from "@/lib/api";
+import { useMyStores } from "@/lib/hooks/useMyStores";
 
 export default function MyStores() {
   const { user } = useGlobalContext();
+  const { stores, isReady, refetch } = useMyStores(user?.$id);
 
-  const [stores, setStores] = useState<any[]>([]);
-  const [isReady, setIsReady] = useState(false);
-
-  const loadMyStores = async () => {
-    if (!user?.$id) {
-      setStores([]);
-      setIsReady(true);
-      return;
-    }
-
-    try {
-      setIsReady(false);
-
-      const data = await fetchMyStores(user.$id);
-      setStores(data.filter(isValidStore));
-    } catch (error) {
-      console.error("MyStores fetch failed:", error);
-      setStores([]);
-    } finally {
-      setIsReady(true);
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
-    loadMyStores();
-  }, [user?.$id]);
-
-  // 🔄 Refresh on focus (after Add Store)
+  // Refresh on focus (after Add Store)
   useFocusEffect(
     useCallback(() => {
-      loadMyStores();
-    }, [user?.$id])
+      refetch();
+    }, [refetch])
   );
+
   useEffect(() => {
-    console.log("MyStores state:", {
-      userId: user?.$id,
-      storeCount: stores.length,
-    });
+    if (__DEV__) console.log("MyStores state:", { userId: user?.$id, storeCount: stores.length });
   }, [stores, user?.$id]);
 
 

@@ -2,10 +2,10 @@ import { View, Text, Image } from "react-native";
 
 import images from "@/constants/images";
 import icons from "@/constants/icons";
-import { Models } from "react-native-appwrite";
+import { Review } from "@/lib/types/store";
 
 interface Props {
-  item: Models.Document;
+  item: Review;
 }
 
 const Comment = ({ item }: Props) => {

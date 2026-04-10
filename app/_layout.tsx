@@ -19,16 +19,16 @@ class RootErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
 > {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(): { hasError: boolean } {
     return { hasError: true };
   }
 
-  componentDidCatch(error: any, info: any) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("🔥 Global crash caught:", error, info);
 
     // 🔴 If you later add Sentry, report here:

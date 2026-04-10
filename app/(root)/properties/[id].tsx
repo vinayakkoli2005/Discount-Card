@@ -23,7 +23,8 @@ const Property = () => {
 
   const windowHeight = Dimensions.get("window").height;
 
-  const { data: property } = useAppwrite({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: property } = useAppwrite<any, any>({
     fn: getPropertyById,
     params: {
       id: id!,

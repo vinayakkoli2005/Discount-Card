@@ -1,10 +1,13 @@
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { Models } from "react-native-appwrite";
+import { Store } from "@/lib/types/store";
+
+const STORE_IMAGE_PLACEHOLDER =
+  "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=640&q=60";
 
 interface Props {
-  item: Models.Document;
+  item: Store;
   onPress?: () => void;
 }
 
@@ -16,7 +19,7 @@ export const FeaturedCard = ({ item:{image,rating, name, address, Price, categor
       onPress={onPress}
       className="flex flex-col items-start w-60 h-80 relative"
     >
-      <Image source={{ uri: image }} className="size-full rounded-2xl" />
+      <Image source={{ uri: image || STORE_IMAGE_PLACEHOLDER }} className="size-full rounded-2xl" />
 
       <Image
         source={images.cardGradient}
@@ -65,7 +68,7 @@ export const Card = ({ item:{image,rating, name, address, Price,category}, onPre
         </Text>
       </View>
 
-      <Image source={{ uri: image }} className="w-full h-40 rounded-lg" />
+      <Image source={{ uri: image || STORE_IMAGE_PLACEHOLDER }} className="w-full h-40 rounded-lg" />
       <View className="flex flex-col mt-2">
         <Text className="text-base font-rubik-bold text-black-300">
           {name}

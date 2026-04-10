@@ -121,15 +121,15 @@ const Store = () => {
               <View className="flex flex-row items-center justify-between mt-4">
                 <View className="flex flex-row items-center">
                   <Image
-                    source={{ uri: store.agent.avatar }}
+                    source={{ uri: store?.agent?.avatar ?? undefined }}
                     className="size-14 rounded-full"
                   />
                   <View className="ml-3">
                     <Text className="text-lg font-rubik-bold">
-                      {store.agent.name}
+                      {store?.agent?.name}
                     </Text>
                     <Text className="text-sm font-rubik-medium text-black-200">
-                      {store.agent.email}
+                      {store?.agent?.email}
                     </Text>
                   </View>
                 </View>
@@ -153,20 +153,20 @@ const Store = () => {
           </View>
 
           {/* Gallery */}
-          {store?.gallery?.length > 0 && (
+          {(store?.gallery?.length ?? 0) > 0 && (
             <View className="mt-7">
               <Text className="text-black-300 text-xl font-rubik-bold">
                 Gallery
               </Text>
 
               <FlatList
-                data={store.gallery}
+                data={store?.gallery}
                 keyExtractor={(item) => item.$id}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <Image
-                    source={{ uri: item.image }}
+                    source={{ uri: (item as { image?: string }).image }}
                     className="size-40 rounded-xl"
                   />
                 )}
@@ -196,11 +196,11 @@ const Store = () => {
 
 
           {/* Reviews */}
-          {store?.reviews?.length > 0 && (
+          {(store?.reviews?.length ?? 0) > 0 && store && (
             <View className="mt-7">
               <View className="flex flex-row items-center justify-between">
                 <Text className="text-black-300 text-xl font-rubik-bold">
-                  Reviews ({store.reviews.length})
+                  Reviews ({store.reviews?.length})
                 </Text>
                 <TouchableOpacity>
                   <Text className="text-primary-300 font-rubik-bold">
@@ -210,7 +210,7 @@ const Store = () => {
               </View>
 
               <View className="mt-5">
-                <Comment item={store.reviews[0]} />
+                <Comment item={store.reviews![0]} />
               </View>
             </View>
           )}
