@@ -10,7 +10,19 @@ router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
-#yyoo
+
+def to_dict(doc):
+    """Convert Appwrite Document object or dict to a plain dict."""
+    if hasattr(doc, "to_map"):
+        return doc.to_map()
+    if hasattr(doc, "__dict__"):
+        return vars(doc)
+    return dict(doc)
+
+def docs_list(result):
+    """Extract documents list from DocumentList object or dict."""
+    raw = result.documents if hasattr(result, "documents") else result["documents"]
+    return [to_dict(d) for d in raw]
 
 class CreateStorePayload(BaseModel):
     name: str
@@ -39,7 +51,7 @@ def get_my_stores(ownerId: str):
             STORES_COLLECTION_ID,
             queries=[Query.equal("ownerId", ownerId)],
         )
-        documents = result.documents if hasattr(result, "documents") else result["documents"]
+        documents = docs_list(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -57,7 +69,7 @@ def get_store_by_id(id: str):
         return {"source": "cache", "data": cached}
 
     try:
-        doc = databases.get_document(
+        raw = databases.get_document(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             id,
@@ -70,6 +82,7 @@ def get_store_by_id(id: str):
                 ]),
             ],
         )
+        doc = to_dict(raw)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,12 +151,9 @@ def get_stores(
                 ],
             )
 
-            def docs(r):
-                return r.documents if hasattr(r, "documents") else r["documents"]
-
             # 🔁 MERGE + DEDUPLICATE
             merged = {}
-            for doc in docs(by_name) + docs(by_address):
+            for doc in docs_list(by_name) + docs_list(by_address):
                 merged[doc["$id"]] = doc
 
             merged_documents = list(merged.values())
@@ -173,7 +183,7 @@ def get_stores(
                     Query.offset(offset),
                 ],
             )
-            documents = result.documents if hasattr(result, "documents") else result["documents"]
+            documents = docs_list(result)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -225,7 +235,8 @@ def delete_store(id: str, ownerId: str):
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     try:
-        doc = databases.get_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+        raw = databases.get_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+        doc = to_dict(raw)
     except Exception as e:
         raise HTTPException(status_code=404, detail="Store not found")
 
