@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from appwrite_client import databases
+from appwrite_client import tables_db
 from cache import get_cache, set_cache, invalidate_cache
 from appwrite.query import Query
 from appwrite.id import ID
@@ -11,20 +11,39 @@ router = APIRouter()
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 
+# Appwrite v1.8 renamed system fields: $id → id, $createdAt → createdat, etc.
+_FIELD_MAP = {
+    "id": "$id",
+    "createdat": "$createdAt",
+    "updatedat": "$updatedAt",
+    "permissions": "$permissions",
+    "collectionid": "$collectionId",
+    "databaseid": "$databaseId",
+}
+
 def to_dict(doc):
-    """Convert Appwrite Document (dict, dict subclass, or typed object) to plain dict."""
+    """Convert Appwrite Row/Document to a plain dict with normalized $ prefixed system fields."""
     if isinstance(doc, dict):
-        return dict(doc)          # handles plain dicts AND dict subclasses (old SDK)
-    if hasattr(doc, "to_map"):
-        return doc.to_map()       # newer SDK typed Document objects
-    return vars(doc)              # last resort
+        d = dict(doc)
+    elif hasattr(doc, "to_map"):
+        d = doc.to_map()
+    else:
+        d = vars(doc)
+
+    # Remap new flat field names back to the $ prefixed names the frontend expects
+    for new_key, old_key in _FIELD_MAP.items():
+        if new_key in d and old_key not in d:
+            d[old_key] = d.pop(new_key)
+
+    return d
 
 def docs_list(result):
-    """Extract and convert documents from a DocumentList or plain dict response."""
+    """Extract and convert rows/documents from a TablesDB or legacy Databases response."""
     if isinstance(result, dict):
-        raw = result.get("documents", [])
+        # TablesDB returns {"rows": [...]}; legacy Databases returned {"documents": [...]}
+        raw = result.get("rows", result.get("documents", []))
     else:
-        raw = getattr(result, "documents", [])
+        raw = getattr(result, "rows", None) or getattr(result, "documents", [])
     return [to_dict(d) for d in raw]
 
 class CreateStorePayload(BaseModel):
@@ -49,7 +68,7 @@ def get_my_stores(ownerId: str):
         return {"source": "cache", "data": cached}
 
     try:
-        result = databases.list_documents(
+        result = tables_db.list_rows(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             queries=[Query.equal("ownerId", ownerId)],
@@ -72,18 +91,10 @@ def get_store_by_id(id: str):
         return {"source": "cache", "data": cached}
 
     try:
-        raw = databases.get_document(
+        raw = tables_db.get_row(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             id,
-            queries=[
-                Query.select([
-                    "*",
-                    "agent.*",
-                    "reviews.*",
-                    "gallery.*",
-                ]),
-            ],
         )
         doc = to_dict(raw)
     except Exception as e:
@@ -132,7 +143,7 @@ def get_stores(
             # This avoids page gaps/duplicates caused by offsetting each branch separately.
             candidate_limit = max(limit + offset, limit)
 
-            by_name = databases.list_documents(
+            by_name = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -143,7 +154,7 @@ def get_stores(
                 ],
             )
 
-            by_address = databases.list_documents(
+            by_address = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -176,7 +187,7 @@ def get_stores(
             if category and category != "All":
                 base_filters.append(Query.equal("category", category))
 
-            result = databases.list_documents(
+            result = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -218,11 +229,11 @@ def create_store(payload: CreateStorePayload):
         if payload.images:
             data["images"] = payload.images
 
-        created = databases.create_document(
+        created = tables_db.create_row(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             ID.unique(),
-            data=data,
+            data,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -230,7 +241,7 @@ def create_store(payload: CreateStorePayload):
     invalidate_cache("stores:")
     invalidate_cache(f"my-stores:{payload.ownerId}")
 
-    return {"ok": True, "data": created}
+    return {"ok": True, "data": to_dict(created)}
 
 @router.delete("/{id}")
 def delete_store(id: str, ownerId: str):
@@ -238,7 +249,7 @@ def delete_store(id: str, ownerId: str):
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     try:
-        raw = databases.get_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
         doc = to_dict(raw)
     except Exception as e:
         raise HTTPException(status_code=404, detail="Store not found")
@@ -247,7 +258,7 @@ def delete_store(id: str, ownerId: str):
         raise HTTPException(status_code=403, detail="Not authorized to delete this store")
 
     try:
-        databases.delete_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+        tables_db.delete_row(DATABASE_ID, STORES_COLLECTION_ID, id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
