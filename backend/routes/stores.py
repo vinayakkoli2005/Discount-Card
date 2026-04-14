@@ -13,6 +13,7 @@ STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 
 
 # Appwrite v1.8 TablesDB responses use flat (no-$) system field names in some places.
+
 # Frontend code (isValidStore, etc.) expects $-prefixed names. Map both directions.
 _FIELD_MAP = {
     "id": "$id",
