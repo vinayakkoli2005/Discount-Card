@@ -21,7 +21,7 @@ _FIELD_MAP = {
     "collectionid": "$collectionId",
     "databaseid": "$databaseId",
 }
-FIELDS = [
+FIELDS = {
     "name",
     "category",
     "address",
@@ -42,7 +42,7 @@ FIELDS = [
     "$id",
     "$createdAt",
     "$updatedAt"
-]
+}
 
 def to_dict(doc):
     """Convert Appwrite Row/Document to a plain dict with normalized $ prefixed system fields."""
