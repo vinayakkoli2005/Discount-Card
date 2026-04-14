@@ -14,6 +14,7 @@ import { useCallback, useEffect } from "react";
 import { logout } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
 import { useMyStores } from "@/lib/hooks/useMyStores";
+import { deleteStore } from "@/lib/api";
 
 
 import icons from "@/constants/icons";
@@ -35,11 +36,43 @@ const Profile = () => {
   }, [myStores, user?.$id]);
 
 
+  const handleDeleteStore = (storeId: string, storeName: string) => {
+    Alert.alert(
+      "Delete Store",
+      `Are you sure you want to delete "${storeName}"? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const ok = await deleteStore(storeId, user?.$id ?? "");
+              if (ok) {
+                refetchStores();
+              } else {
+                Alert.alert("Error", "Failed to delete store");
+              }
+            } catch {
+              Alert.alert("Error", "Network error. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleLogout = async () => {
-    const result = await logout();
-    if (result) {
-      Alert.alert("Success", "Logged out successfully");
-      refetch();
+    try {
+      const result = await logout();
+      if (result) {
+        Alert.alert("Success", "Logged out successfully");
+        refetch();
+      } else {
+        Alert.alert("Error", "Logout failed, please try again");
+      }
+    } catch {
+      Alert.alert("Error", "Could not log out");
     }
   };
 
@@ -58,13 +91,28 @@ const Profile = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <ScrollView contentContainerClassName="pb-32 px-7">
-        <Text className="text-xl font-rubik-bold mt-5">Profile</Text>
+        <View className="flex flex-row items-center mt-5">
+          <TouchableOpacity
+            onPress={() => {
+              if (router.canGoBack()) router.back();
+              else router.replace("/(root)/(tabs)");
+            }}
+            className="mr-3"
+          >
+            <Image source={icons.backArrow} className="size-5" />
+          </TouchableOpacity>
+          <Text className="text-xl font-rubik-bold">Profile</Text>
+        </View>
 
         <View className="items-center mt-10">
-          <Image
-            source={{ uri: user?.avatar }}
-            className="size-40 rounded-full"
-          />
+          {user?.avatar ? (
+            <Image
+              source={{ uri: user.avatar }}
+              className="size-40 rounded-full"
+            />
+          ) : (
+            <View className="size-40 rounded-full bg-gray-200" />
+          )}
           <Text className="text-2xl font-rubik-bold mt-4">
             {user?.name}
           </Text>
@@ -86,15 +134,44 @@ const Profile = () => {
             </Text>
 
             {myStores.map((store) => (
-              <TouchableOpacity
+              <View
                 key={store.$id}
-                onPress={() => router.push("/my-stores")}
-                className="py-4 border-b border-primary-200"
+                className="border border-primary-200 rounded-xl p-4 mt-4"
               >
-                <Text className="text-base font-rubik-medium">
-                  {store.name}
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-rubik-bold text-lg flex-1 mr-2">
+                    {store.name}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteStore(store.$id, store.name)}
+                  >
+                    <Text className="text-red-400 text-sm font-rubik-medium">Delete</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-sm text-gray-600 mt-1">
+                  {store.category}
                 </Text>
-              </TouchableOpacity>
+
+                <Text className="text-sm text-gray-500 mt-1">
+                  {store.address}
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!store.$id) return;
+                    router.push({
+                      pathname: "/stores/[id]",
+                      params: { id: store.$id },
+                    });
+                  }}
+                  className="mt-3 self-start"
+                >
+                  <Text className="text-primary-300 font-rubik-bold">
+                    View details →
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}

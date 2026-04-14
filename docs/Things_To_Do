@@ -1,0 +1,36 @@
+login page
+heading Volo
+     (Vocal for local)
+    discover local Stores nearby
+continue with google - login with google
+
+note
+-  no dynnamic photo
+-  static photo (volo, discover local Stores nearby )
+- no result -> no stores
+- remove task bar
+- notofication (disable for now)
+- back button
+- delete store (are you sure -> ok,cancle)
+- edit (save ,cancel)
+- profile (des and dev by vinayak(profile or linkedin))
+
+
+store profile
+- distance
+- no likes , fav , heart , stars, reviews
+- about store -> about
+- maps k upar about k neece ( phone when cilick phone opens)
+- whats app ( when click whats open )
+
+home page
+ top left vinayak (remove vinayak name, vk icon remove, add hamburger ) -> click ->  profile
+ srores- store near you
+ search - right -> location icon remove
+
+Add store
+    - phone no( validate )
+    - upload image
+    - ceeate store -> add store
+
+

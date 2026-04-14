@@ -28,7 +28,8 @@ export const config = {
   reviewsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REVIEWS_COLLECTION_ID,
   agentsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_AGENTS_COLLECTION_ID,
   propertiesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PROPERTIES_COLLECTION_ID,
-  storeImagesBucketId: process.env.EXPO_PUBLIC_APPWRITE_STORE_IMAGES_BUCKET_ID,  
+  storeImagesBucketId: process.env.EXPO_PUBLIC_APPWRITE_STORE_IMAGES_BUCKET_ID,
+  productsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PRODUCTS_COLLECTION_ID,
 };
 
 export const client = new Client();

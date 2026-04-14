@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Image,
   Text,
@@ -7,6 +8,9 @@ import {
   Alert,
   Pressable,
   TextInput,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
@@ -18,7 +22,6 @@ import NoResults from "@/components/NoResults";
 import { Card } from "@/components/Cards";
 import Filters from "@/components/Filters";
 
-import { useGlobalContext } from "@/lib/global-provider";
 import { isValidStore } from "@/lib/appwrite";
 import { getDistanceInKm } from "@/lib/distance";
 import { fetchStores } from "@/lib/api";
@@ -26,7 +29,26 @@ import { fetchStores } from "@/lib/api";
 const PAGE_SIZE = 10;
 
 export default function Index() {
-  const { user } = useGlobalContext();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const slideAnim = useRef(new Animated.Value(-280)).current;
+
+  const openMenu = () => {
+    setMenuOpen(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeMenu = () => {
+    Animated.timing(slideAnim, {
+      toValue: -280,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setMenuOpen(false));
+  };
+
   const params = useLocalSearchParams<{ filter?: string | string[] }>();
   const filterParam = Array.isArray(params.filter)
     ? params.filter[0]
@@ -193,6 +215,53 @@ export default function Index() {
   /* ---------------- UI ---------------- */
   return (
     <SafeAreaView className="flex-1 bg-white">
+      {/* SIDEBAR MODAL */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="none"
+        onRequestClose={closeMenu}
+      >
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          {/* Sidebar panel */}
+          <Animated.View
+            style={{
+              transform: [{ translateX: slideAnim }],
+              width: 280,
+              backgroundColor: "white",
+              height: "100%",
+              shadowColor: "#000",
+              shadowOffset: { width: 2, height: 0 },
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 10,
+              paddingTop: 60,
+              paddingHorizontal: 24,
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 32, color: "#191d31" }}>
+              Menu
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu();
+                setTimeout(() => router.push("/(root)/(tabs)/profile"), 220);
+              }}
+              style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" }}
+            >
+              <Image source={icons.person} style={{ width: 20, height: 20, marginRight: 12 }} />
+              <Text style={{ fontSize: 16, color: "#191d31" }}>Profile</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Dimmed overlay — closes the sidebar */}
+          <TouchableWithoutFeedback onPress={closeMenu}>
+            <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)" }} />
+          </TouchableWithoutFeedback>
+        </View>
+      </Modal>
+
       <FlatList
         data={displayStores}
         numColumns={2}
@@ -215,20 +284,13 @@ export default function Index() {
           <View className="px-5">
             {/* HEADER */}
             <View className="flex flex-row items-center justify-between mt-5">
-              <View className="flex flex-row items-center">
-                <Image
-                  source={{ uri: user?.avatar }}
-                  className="size-12 rounded-full"
-                />
-                <View className="ml-2">
-                  <Text className="text-sm text-black-200">
-                    Welcome back
-                  </Text>
-                  <Text className="text-base font-rubik-medium text-black-300">
-                    {user?.name}
-                  </Text>
-                </View>
-              </View>
+              {/* Hamburger */}
+              <TouchableOpacity onPress={openMenu} className="p-1">
+                <View className="w-6 h-0.5 bg-black-300 mb-1" />
+                <View className="w-6 h-0.5 bg-black-300 mb-1" />
+                <View className="w-6 h-0.5 bg-black-300" />
+              </TouchableOpacity>
+
               <Image source={icons.bell} className="size-6" />
             </View>
 

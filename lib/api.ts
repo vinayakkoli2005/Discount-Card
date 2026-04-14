@@ -16,6 +16,8 @@ type CreateStoreParams = {
   latitude: number;
   longitude: number;
   ownerId: string;
+  phone?: string;
+  images?: string[];
 };
 
 export async function fetchStores({
@@ -44,7 +46,7 @@ export async function fetchStores({
   }
 
   const json = await res.json();
-  return json.data;
+  return Array.isArray(json?.data) ? json.data : [];
 }
 
 export async function fetchMyStores(ownerId: string): Promise<Store[]> {
@@ -63,7 +65,7 @@ export async function fetchMyStores(ownerId: string): Promise<Store[]> {
   }
 
   const json = await res.json();
-  return json.data;
+  return Array.isArray(json?.data) ? json.data : [];
 }
 
 export async function fetchStoreById(id: string): Promise<Store | null> {
@@ -76,10 +78,17 @@ export async function fetchStoreById(id: string): Promise<Store | null> {
   }
 
   const json = await res.json();
-  return json.data;
+  return json?.data ?? null;
 }
 
-export async function createStore(data: CreateStoreParams) {
+export async function deleteStore(storeId: string, ownerId: string): Promise<boolean> {
+  const url = new URL(`${STORES_ENDPOINT}${storeId}`);
+  url.searchParams.set("ownerId", ownerId);
+  const res = await fetch(url.toString(), { method: "DELETE" });
+  return res.ok;
+}
+
+export async function createStore(data: CreateStoreParams): Promise<string | null> {
   const res = await fetch(STORES_ENDPOINT, {
     method: "POST",
     headers: {
@@ -91,8 +100,9 @@ export async function createStore(data: CreateStoreParams) {
   if (!res.ok) {
     const text = await res.text();
     console.error("API error:", text);
-    return false;
+    return null;
   }
 
-  return true;
+  const json = await res.json();
+  return json?.data?.$id ?? json?.$id ?? null;
 }

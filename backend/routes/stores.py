@@ -20,6 +20,8 @@ class CreateStorePayload(BaseModel):
     latitude: float
     longitude: float
     ownerId: str
+    phone: str | None = None
+    images: list[str] | None = None
 
 @router.get("/my")
 def get_my_stores(ownerId: str):
@@ -184,21 +186,27 @@ def create_store(payload: CreateStorePayload):
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     try:
+        data = {
+            "name": payload.name,
+            "category": payload.category,
+            "address": payload.address,
+            "description": payload.description,
+            "latitude": payload.latitude,
+            "longitude": payload.longitude,
+            "ownerId": payload.ownerId,
+            "rating": 0,
+            "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
+        }
+        if payload.phone:
+            data["phone"] = payload.phone
+        if payload.images:
+            data["images"] = payload.images
+
         created = databases.create_document(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             ID.unique(),
-            data={
-                "name": payload.name,
-                "category": payload.category,
-                "address": payload.address,
-                "description": payload.description,
-                "latitude": payload.latitude,
-                "longitude": payload.longitude,
-                "ownerId": payload.ownerId,
-                "rating": 0,
-                "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
-            },
+            data=data,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -207,3 +215,27 @@ def create_store(payload: CreateStorePayload):
     invalidate_cache(f"my-stores:{payload.ownerId}")
 
     return {"ok": True, "data": created}
+
+@router.delete("/{id}")
+def delete_store(id: str, ownerId: str):
+    if not DATABASE_ID or not STORES_COLLECTION_ID:
+        raise HTTPException(status_code=500, detail="Server misconfiguration")
+
+    try:
+        doc = databases.get_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    if doc.get("ownerId") != ownerId:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this store")
+
+    try:
+        databases.delete_document(DATABASE_ID, STORES_COLLECTION_ID, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    invalidate_cache("stores:")
+    invalidate_cache(f"my-stores:{ownerId}")
+    invalidate_cache(f"store:{id}")
+
+    return {"ok": True}

@@ -15,7 +15,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 64,
+          display: "none",
         },
       }}
     >
