@@ -21,6 +21,28 @@ _FIELD_MAP = {
     "collectionid": "$collectionId",
     "databaseid": "$databaseId",
 }
+FIELDS = [
+    "name",
+    "category",
+    "address",
+    "description",
+    "latitude",
+    "longitude",
+    "ownerId",
+    "phone",
+    "images",
+    "image",
+    "rating",
+    "discountPercent",
+    "discountText",
+    "isFeatured",
+    "opening_hours",
+    "is_active",
+    "product_count",
+    "$id",
+    "$createdAt",
+    "$updatedAt"
+]
 
 def to_dict(doc):
     """Convert Appwrite Row/Document to a plain dict with normalized $ prefixed system fields."""
@@ -72,7 +94,7 @@ def get_my_stores(ownerId: str):
         result = tables_db.list_rows(
             DATABASE_ID,
             STORES_COLLECTION_ID,
-            queries=[Query.select(["*"]), Query.equal("ownerId", ownerId)],
+            queries=[Query.select([FIELDS]), Query.equal("ownerId", ownerId)],
         )
         documents = docs_list(result)
     except Exception as e:
@@ -103,7 +125,7 @@ def debug_raw(limit: int = 1):
         out["tables_db_list_rows_with_select"] = tables_db.list_rows(
             DATABASE_ID,
             STORES_COLLECTION_ID,
-            queries=[Query.select(["*"]), Query.limit(limit)],
+            queries=[Query.select([FIELDS]), Query.limit(limit)],
         )
     except Exception as e:
         out["tables_db_list_rows_with_select_error"] = repr(e)
@@ -153,7 +175,7 @@ def get_store_by_id(id: str):
             DATABASE_ID,
             STORES_COLLECTION_ID,
             id,
-            queries=[Query.select(["*"])],
+            queries=[Query.select([FIELDS])],
         )
         doc = to_dict(raw)
     except Exception as e:
@@ -206,7 +228,7 @@ def get_stores(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
-                    Query.select(["*"]),
+                    Query.select([FIELDS]),
                     *base_filters,
                     Query.search("name", query),
                     Query.limit(candidate_limit),
@@ -218,7 +240,7 @@ def get_stores(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
-                    Query.select(["*"]),
+                    Query.select([FIELDS]),
                     *base_filters,
                     Query.search("address", query),
                     Query.limit(candidate_limit),
@@ -252,7 +274,7 @@ def get_stores(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
-                    Query.select(["*"]),
+                    Query.select([FIELDS]),
                     *base_filters,
                     Query.order_desc("$createdAt"),
                     Query.limit(limit),
@@ -311,7 +333,7 @@ def delete_store(id: str, ownerId: str):
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     try:
-        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id, queries=[Query.select(["*"])])
+        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id, queries=[Query.select([FIELDS])])
         doc = to_dict(raw)
     except Exception as e:
         raise HTTPException(status_code=404, detail="Store not found")
