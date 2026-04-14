@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from appwrite_client import tables_db
+from appwrite_client import tables_db, databases
 from cache import get_cache, set_cache, invalidate_cache
 from appwrite.query import Query
 from appwrite.id import ID
 from pydantic import BaseModel
 import os
+import json
 
 router = APIRouter()
 
@@ -79,6 +80,63 @@ def get_my_stores(ownerId: str):
 
     set_cache(cache_key, documents)
     return {"source": "db", "data": documents}
+
+@router.get("/debug/raw")
+def debug_raw(limit: int = 1):
+    """Diagnostic — returns the UNMODIFIED response from Appwrite so we can see
+    exactly which keys come back. Compares tables_db.list_rows vs databases.list_documents.
+    """
+    if not DATABASE_ID or not STORES_COLLECTION_ID:
+        raise HTTPException(status_code=500, detail="Server misconfiguration")
+
+    out = {}
+    try:
+        out["tables_db_list_rows"] = tables_db.list_rows(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.limit(limit)],
+        )
+    except Exception as e:
+        out["tables_db_list_rows_error"] = repr(e)
+
+    try:
+        out["tables_db_list_rows_with_select"] = tables_db.list_rows(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.select(["*"]), Query.limit(limit)],
+        )
+    except Exception as e:
+        out["tables_db_list_rows_with_select_error"] = repr(e)
+
+    try:
+        out["databases_list_documents"] = databases.list_documents(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.limit(limit)],
+        )
+    except Exception as e:
+        out["databases_list_documents_error"] = repr(e)
+
+    try:
+        out["databases_list_documents_with_select"] = databases.list_documents(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.select(["name", "category", "address"]), Query.limit(limit)],
+        )
+    except Exception as e:
+        out["databases_list_documents_with_select_error"] = repr(e)
+
+    # Also list named columns explicitly via tables_db
+    try:
+        out["tables_db_named_select"] = tables_db.list_rows(
+            DATABASE_ID,
+            STORES_COLLECTION_ID,
+            queries=[Query.select(["name", "category", "address", "latitude", "longitude"]), Query.limit(limit)],
+        )
+    except Exception as e:
+        out["tables_db_named_select_error"] = repr(e)
+
+    return out
 
 @router.get("/{id}")
 def get_store_by_id(id: str):
