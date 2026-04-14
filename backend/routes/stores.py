@@ -12,16 +12,19 @@ DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 
 def to_dict(doc):
-    """Convert Appwrite Document object or dict to a plain dict."""
+    """Convert Appwrite Document (dict, dict subclass, or typed object) to plain dict."""
+    if isinstance(doc, dict):
+        return dict(doc)          # handles plain dicts AND dict subclasses (old SDK)
     if hasattr(doc, "to_map"):
-        return doc.to_map()
-    if hasattr(doc, "__dict__"):
-        return vars(doc)
-    return dict(doc)
+        return doc.to_map()       # newer SDK typed Document objects
+    return vars(doc)              # last resort
 
 def docs_list(result):
-    """Extract documents list from DocumentList object or dict."""
-    raw = result.documents if hasattr(result, "documents") else result["documents"]
+    """Extract and convert documents from a DocumentList or plain dict response."""
+    if isinstance(result, dict):
+        raw = result.get("documents", [])
+    else:
+        raw = getattr(result, "documents", [])
     return [to_dict(d) for d in raw]
 
 class CreateStorePayload(BaseModel):
