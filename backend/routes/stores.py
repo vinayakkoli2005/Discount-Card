@@ -39,7 +39,7 @@ def get_my_stores(ownerId: str):
             STORES_COLLECTION_ID,
             queries=[Query.equal("ownerId", ownerId)],
         )
-        documents = result["documents"]
+        documents = result.documents if hasattr(result, "documents") else result["documents"]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,9 +138,12 @@ def get_stores(
                 ],
             )
 
+            def docs(r):
+                return r.documents if hasattr(r, "documents") else r["documents"]
+
             # 🔁 MERGE + DEDUPLICATE
             merged = {}
-            for doc in by_name["documents"] + by_address["documents"]:
+            for doc in docs(by_name) + docs(by_address):
                 merged[doc["$id"]] = doc
 
             merged_documents = list(merged.values())
@@ -170,7 +173,7 @@ def get_stores(
                     Query.offset(offset),
                 ],
             )
-            documents = result["documents"]
+            documents = result.documents if hasattr(result, "documents") else result["documents"]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
