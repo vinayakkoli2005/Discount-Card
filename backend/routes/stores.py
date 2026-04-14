@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from appwrite_client import databases
+from appwrite_client import tables_db
 from cache import get_cache, set_cache, invalidate_cache
 from appwrite.query import Query
 from appwrite.id import ID
@@ -12,27 +12,55 @@ DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 
 
-def _to_dict(obj):
-    """Normalize Appwrite SDK responses (Document / DocumentList / dict) to a plain dict."""
-    if obj is None or isinstance(obj, (str, int, float, bool)):
-        return obj
-    if isinstance(obj, list):
-        return [_to_dict(x) for x in obj]
-    if isinstance(obj, dict):
-        return {k: _to_dict(v) for k, v in obj.items()}
-    if hasattr(obj, "to_map") and callable(obj.to_map):
-        return _to_dict(obj.to_map())
-    if hasattr(obj, "__dict__"):
-        return _to_dict(vars(obj))
-    return obj
+# Appwrite v1.8 TablesDB responses use flat (no-$) system field names in some places.
+# Frontend code (isValidStore, etc.) expects $-prefixed names. Map both directions.
+_FIELD_MAP = {
+    "id": "$id",
+    "createdat": "$createdAt",
+    "updatedat": "$updatedAt",
+    "permissions": "$permissions",
+    "databaseid": "$databaseId",
+    "collectionid": "$collectionId",
+    "sequence": "$sequence",
+    "tableid": "$tableId",
+}
 
 
-def _docs(result):
-    """Extract documents list from a list_documents response (dict or DocumentList)."""
-    d = _to_dict(result)
-    if isinstance(d, dict):
-        return d.get("documents") or d.get("rows") or []
-    return []
+def _normalize(doc):
+    """Normalize an Appwrite v1.8 row/document to a plain dict with $-prefixed system fields.
+    Keeps ALL other keys (column data) untouched.
+    """
+    if doc is None:
+        return None
+    if not isinstance(doc, dict):
+        # Typed SDK model → try to_map(), then __dict__
+        if hasattr(doc, "to_map") and callable(doc.to_map):
+            doc = doc.to_map()
+        elif hasattr(doc, "__dict__"):
+            doc = dict(vars(doc))
+        else:
+            return doc
+    out = {}
+    for k, v in doc.items():
+        key = _FIELD_MAP.get(k, k)
+        out[key] = v
+    return out
+
+
+def _rows(result):
+    """Extract row list from list_rows response (dict with 'rows' or 'documents' key)."""
+    if result is None:
+        return []
+    if not isinstance(result, dict):
+        if hasattr(result, "to_map") and callable(result.to_map):
+            result = result.to_map()
+        elif hasattr(result, "__dict__"):
+            result = dict(vars(result))
+        else:
+            return []
+    raw = result.get("rows") or result.get("documents") or []
+    return [_normalize(r) for r in raw]
+
 
 class CreateStorePayload(BaseModel):
     name: str
@@ -42,6 +70,9 @@ class CreateStorePayload(BaseModel):
     latitude: float
     longitude: float
     ownerId: str
+    phone: str | None = None
+    images: list[str] | None = None
+
 
 @router.get("/my")
 def get_my_stores(ownerId: str):
@@ -54,17 +85,18 @@ def get_my_stores(ownerId: str):
         return {"source": "cache", "data": cached}
 
     try:
-        result = databases.list_documents(
+        result = tables_db.list_rows(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             queries=[Query.equal("ownerId", ownerId)],
         )
-        documents = _docs(result)
+        documents = _rows(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     set_cache(cache_key, documents)
     return {"source": "db", "data": documents}
+
 
 @router.get("/{id}")
 def get_store_by_id(id: str):
@@ -77,33 +109,22 @@ def get_store_by_id(id: str):
         return {"source": "cache", "data": cached}
 
     try:
-        raw = databases.get_document(
-            DATABASE_ID,
-            STORES_COLLECTION_ID,
-            id,
-            queries=[
-                Query.select([
-                    "*",
-                    "agent.*",
-                    "reviews.*",
-                    "gallery.*",
-                ]),
-            ],
-        )
-        doc = _to_dict(raw)
+        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
+        doc = _normalize(raw)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     payload = {
-        **doc,
-        "reviews": doc.get("reviews") or [],
-        "gallery": doc.get("gallery") or [],
-        "facilities": doc.get("facilities") or [],
-        "agent": doc.get("agent"),
+        **(doc or {}),
+        "reviews": (doc or {}).get("reviews") or [],
+        "gallery": (doc or {}).get("gallery") or [],
+        "facilities": (doc or {}).get("facilities") or [],
+        "agent": (doc or {}).get("agent"),
     }
 
     set_cache(cache_key, payload)
     return {"source": "db", "data": payload}
+
 
 @router.get("/")
 def get_stores(
@@ -119,7 +140,6 @@ def get_stores(
         f"stores:{limit}:{offset}:{query or 'all'}:{category or 'all'}"
     )
 
-    # ✅ CACHE READ
     cached = get_cache(cache_key)
     if cached is not None:
         return {"source": "cache", "data": cached}
@@ -127,17 +147,14 @@ def get_stores(
     try:
         documents = []
 
-        # 🔍 SEARCH (MATCH JS SDK BEHAVIOR)
         if query:
             base_filters = []
             if category and category != "All":
                 base_filters.append(Query.equal("category", category))
 
-            # Pull enough candidates first, then paginate after merge+dedupe.
-            # This avoids page gaps/duplicates caused by offsetting each branch separately.
             candidate_limit = max(limit + offset, limit)
 
-            by_name = databases.list_documents(
+            by_name = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -148,7 +165,7 @@ def get_stores(
                 ],
             )
 
-            by_address = databases.list_documents(
+            by_address = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -159,29 +176,24 @@ def get_stores(
                 ],
             )
 
-            # 🔁 MERGE + DEDUPLICATE
             merged = {}
-            for doc in _docs(by_name) + _docs(by_address):
-                merged[doc["$id"]] = doc
+            for doc in _rows(by_name) + _rows(by_address):
+                if doc.get("$id"):
+                    merged[doc["$id"]] = doc
 
             merged_documents = list(merged.values())
-
-            # Keep ordering stable across pages
             merged_documents.sort(
                 key=lambda d: d.get("$createdAt", ""),
                 reverse=True,
             )
-
-            # Apply pagination only once after merge
             documents = merged_documents[offset : offset + limit]
 
-        # 📦 NO SEARCH → NORMAL LISTING
         else:
             base_filters = []
             if category and category != "All":
                 base_filters.append(Query.equal("category", category))
 
-            result = databases.list_documents(
+            result = tables_db.list_rows(
                 DATABASE_ID,
                 STORES_COLLECTION_ID,
                 queries=[
@@ -191,15 +203,14 @@ def get_stores(
                     Query.offset(offset),
                 ],
             )
-            documents = _docs(result)
+            documents = _rows(result)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # ✅ CACHE WRITE
     set_cache(cache_key, documents)
-
     return {"source": "db", "data": documents}
+
 
 @router.post("/")
 def create_store(payload: CreateStorePayload):
@@ -207,21 +218,27 @@ def create_store(payload: CreateStorePayload):
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     try:
-        created = databases.create_document(
+        data = {
+            "name": payload.name,
+            "category": payload.category,
+            "address": payload.address,
+            "description": payload.description,
+            "latitude": payload.latitude,
+            "longitude": payload.longitude,
+            "ownerId": payload.ownerId,
+            "rating": 0,
+            "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
+        }
+        if payload.phone:
+            data["phone"] = payload.phone
+        if payload.images:
+            data["images"] = payload.images
+
+        created = tables_db.create_row(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             ID.unique(),
-            data={
-                "name": payload.name,
-                "category": payload.category,
-                "address": payload.address,
-                "description": payload.description,
-                "latitude": payload.latitude,
-                "longitude": payload.longitude,
-                "ownerId": payload.ownerId,
-                "rating": 0,
-                "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
-            },
+            data,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -229,4 +246,4 @@ def create_store(payload: CreateStorePayload):
     invalidate_cache("stores:")
     invalidate_cache(f"my-stores:{payload.ownerId}")
 
-    return {"ok": True, "data": _to_dict(created)}
+    return {"ok": True, "data": _normalize(created)}

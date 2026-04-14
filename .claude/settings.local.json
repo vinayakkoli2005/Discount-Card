@@ -4,7 +4,8 @@
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
       "mcp__plugin_context-mode_context-mode__ctx_search",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(iconv -f UTF-16 -t UTF-8)"
     ]
   }
 }
