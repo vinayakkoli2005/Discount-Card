@@ -248,3 +248,29 @@ def create_store(payload: CreateStorePayload):
     invalidate_cache(f"my-stores:{payload.ownerId}")
 
     return {"ok": True, "data": _normalize(created)}
+
+
+@router.delete("/{id}")
+def delete_store(id: str, ownerId: str):
+    if not DATABASE_ID or not STORES_COLLECTION_ID:
+        raise HTTPException(status_code=500, detail="Server misconfiguration")
+
+    try:
+        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
+        doc = _normalize(raw)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    if doc.get("ownerId") != ownerId:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this store")
+
+    try:
+        tables_db.delete_row(DATABASE_ID, STORES_COLLECTION_ID, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    invalidate_cache("stores:")
+    invalidate_cache(f"my-stores:{ownerId}")
+    invalidate_cache(f"store:{id}")
+
+    return {"ok": True}
