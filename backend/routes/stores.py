@@ -10,7 +10,29 @@ router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
-#yyoo
+
+
+def _to_dict(obj):
+    """Normalize Appwrite SDK responses (Document / DocumentList / dict) to a plain dict."""
+    if obj is None or isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, list):
+        return [_to_dict(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _to_dict(v) for k, v in obj.items()}
+    if hasattr(obj, "to_map") and callable(obj.to_map):
+        return _to_dict(obj.to_map())
+    if hasattr(obj, "__dict__"):
+        return _to_dict(vars(obj))
+    return obj
+
+
+def _docs(result):
+    """Extract documents list from a list_documents response (dict or DocumentList)."""
+    d = _to_dict(result)
+    if isinstance(d, dict):
+        return d.get("documents") or d.get("rows") or []
+    return []
 
 class CreateStorePayload(BaseModel):
     name: str
@@ -37,7 +59,7 @@ def get_my_stores(ownerId: str):
             STORES_COLLECTION_ID,
             queries=[Query.equal("ownerId", ownerId)],
         )
-        documents = result["documents"]
+        documents = _docs(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -55,7 +77,7 @@ def get_store_by_id(id: str):
         return {"source": "cache", "data": cached}
 
     try:
-        doc = databases.get_document(
+        raw = databases.get_document(
             DATABASE_ID,
             STORES_COLLECTION_ID,
             id,
@@ -68,6 +90,7 @@ def get_store_by_id(id: str):
                 ]),
             ],
         )
+        doc = _to_dict(raw)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,7 +161,7 @@ def get_stores(
 
             # 🔁 MERGE + DEDUPLICATE
             merged = {}
-            for doc in by_name["documents"] + by_address["documents"]:
+            for doc in _docs(by_name) + _docs(by_address):
                 merged[doc["$id"]] = doc
 
             merged_documents = list(merged.values())
@@ -168,7 +191,7 @@ def get_stores(
                     Query.offset(offset),
                 ],
             )
-            documents = result["documents"]
+            documents = _docs(result)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -206,4 +229,4 @@ def create_store(payload: CreateStorePayload):
     invalidate_cache("stores:")
     invalidate_cache(f"my-stores:{payload.ownerId}")
 
-    return {"ok": True, "data": created}
+    return {"ok": True, "data": _to_dict(created)}
