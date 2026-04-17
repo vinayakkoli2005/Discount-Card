@@ -14,8 +14,9 @@ import icons from "@/constants/icons";
 import images from "@/constants/images";
 import Comment from "@/components/Comment";
 
+import { useState, useEffect } from "react";
 import { useAppwrite } from "@/lib/useAppwrite";
-import { fetchStoreById } from "@/lib/api";
+import { fetchStoreById, fetchProductsByStore, Product } from "@/lib/api";
 import { Linking, Alert } from "react-native";
 
 
@@ -29,6 +30,14 @@ const Store = () => {
       id: id!,
     },
   });
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (store?.$id) {
+      fetchProductsByStore(store.$id).then(setProducts);
+    }
+  }, [store?.$id]);
+
   const openInMaps = () => {
     if (!store?.latitude || !store?.longitude) {
         Alert.alert("Location not available");
@@ -194,6 +203,42 @@ const Store = () => {
                 />
             </TouchableOpacity>
 
+
+          {/* Products */}
+          {products.length > 0 && (
+            <View className="mt-7">
+              <Text className="text-black-300 text-xl font-rubik-bold">
+                Products
+              </Text>
+              {products.map((product) => (
+                <View
+                  key={product.$id}
+                  className="border border-primary-200 rounded-xl p-4 mt-3"
+                >
+                  <View className="flex-row items-center justify-between">
+                    <Text className="font-rubik-bold text-base flex-1 mr-2">
+                      {product.name}
+                    </Text>
+                    {product.price != null && (
+                      <Text className="text-primary-300 font-rubik-bold">
+                        ₹{product.price}
+                      </Text>
+                    )}
+                  </View>
+                  {product.category ? (
+                    <Text className="text-xs text-gray-400 mt-1">
+                      {product.category}
+                    </Text>
+                  ) : null}
+                  {product.description ? (
+                    <Text className="text-sm text-black-200 mt-1">
+                      {product.description}
+                    </Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* Reviews */}
           {(store?.reviews?.length ?? 0) > 0 && store && (

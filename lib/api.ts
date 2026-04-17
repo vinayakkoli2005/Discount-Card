@@ -2,6 +2,18 @@ import { Store } from "./types/store";
 
 const API_BASE_URL = "https://discount-card-api.onrender.com";
 const STORES_ENDPOINT = `${API_BASE_URL}/stores/`;
+const PRODUCTS_ENDPOINT = `${API_BASE_URL}/products/`;
+
+export type Product = {
+  $id: string;
+  store_id: string;
+  owner_id: string;
+  name: string;
+  category: string;
+  price?: number;
+  description?: string;
+  image_id?: string;
+};
 type FetchStoresParams = {
   limit?: number;
   offset?: number;
@@ -130,4 +142,46 @@ export async function createStore(data: CreateStoreParams): Promise<string | nul
 
   const json = await res.json();
   return json?.data?.$id ?? json?.$id ?? null;
+}
+
+// ─── Products ────────────────────────────────────────────────────────────────
+
+export async function fetchProductsByStore(storeId: string): Promise<Product[]> {
+  const url = new URL(PRODUCTS_ENDPOINT);
+  url.searchParams.set("storeId", storeId);
+  const res = await fetch(url.toString());
+  if (!res.ok) return [];
+  const json = await res.json();
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+type CreateProductParams = {
+  store_id: string;
+  owner_id: string;
+  name: string;
+  category: string;
+  price?: number;
+  description?: string;
+};
+
+export async function createProduct(data: CreateProductParams): Promise<string | null> {
+  const res = await fetch(PRODUCTS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API error:", text);
+    return null;
+  }
+  const json = await res.json();
+  return json?.data?.$id ?? null;
+}
+
+export async function deleteProduct(productId: string, ownerId: string): Promise<boolean> {
+  const url = new URL(`${PRODUCTS_ENDPOINT}${productId}`);
+  url.searchParams.set("ownerId", ownerId);
+  const res = await fetch(url.toString(), { method: "DELETE" });
+  return res.ok;
 }

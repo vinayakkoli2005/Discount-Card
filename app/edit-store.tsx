@@ -20,13 +20,21 @@ import icons from "@/constants/icons";
 import { categories } from "@/constants/data";
 import { storage, config } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
-import { updateStore } from "@/lib/api";
+import { updateStore, fetchProductsByStore, createProduct, deleteProduct, Product } from "@/lib/api";
 import {
   getStoreNameError,
   getPhoneError,
   getAddressError,
   getDescriptionError,
 } from "@/lib/validation";
+
+type NewProductInput = {
+  localId: string;
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+};
 
 const EditStore = () => {
   const { user } = useGlobalContext();
@@ -53,6 +61,15 @@ const EditStore = () => {
     params.lng ? Number(params.lng) : null
   );
   const [imageUris, setImageUris] = useState<string[]>([]);
+  const [savedProducts, setSavedProducts] = useState<Product[]>([]);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const [newProducts, setNewProducts] = useState<NewProductInput[]>([]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchProductsByStore(params.id).then(setSavedProducts);
+    }
+  }, [params.id]);
 
   // Handle location returned from pick-location screen
   useEffect(() => {
@@ -118,6 +135,35 @@ const EditStore = () => {
     }
   };
 
+  const toggleDeleteProduct = (id: string) => {
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const addNewProduct = () => {
+    setNewProducts((prev) => [
+      ...prev,
+      { localId: Date.now().toString(), name: "", description: "", price: "", category: "" },
+    ]);
+  };
+
+  const removeNewProduct = (localId: string) => {
+    setNewProducts((prev) => prev.filter((p) => p.localId !== localId));
+  };
+
+  const updateNewProduct = (
+    localId: string,
+    field: keyof Omit<NewProductInput, "localId">,
+    value: string
+  ) => {
+    setNewProducts((prev) =>
+      prev.map((p) => (p.localId === localId ? { ...p, [field]: value } : p))
+    );
+  };
+
   const handleSubmit = async () => {
     const nameError = getStoreNameError(name);
     if (nameError) { Alert.alert("Invalid Store Name", nameError); return; }
@@ -173,6 +219,24 @@ const EditStore = () => {
     } catch {
       Alert.alert("Error", "Network error. Please try again.");
       return;
+    }
+
+    // Delete marked products
+    for (const pid of deletedIds) {
+      await deleteProduct(pid, user.$id);
+    }
+
+    // Create new products
+    for (const p of newProducts) {
+      if (!p.name.trim() || !p.price.trim()) continue;
+      await createProduct({
+        store_id: params.id!,
+        owner_id: user.$id,
+        name: p.name.trim(),
+        description: p.description.trim(),
+        price: parseFloat(p.price),
+        category: p.category,
+      });
     }
 
     Alert.alert("Success", "Store updated");
@@ -358,6 +422,92 @@ const EditStore = () => {
             </MapView>
           </View>
         )}
+
+        {/* Products */}
+        <Text className="text-lg font-rubik-bold mt-10">
+          Products{" "}
+          <Text className="text-sm text-gray-400 font-rubik">(optional)</Text>
+        </Text>
+
+        {/* Existing saved products */}
+        {savedProducts.map((p) => (
+          <View
+            key={p.$id}
+            className={`border rounded-xl p-4 mt-3 ${
+              deletedIds.has(p.$id) ? "border-red-300 bg-red-50" : "border-primary-200"
+            }`}
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className={`font-rubik-bold text-sm flex-1 mr-2 ${deletedIds.has(p.$id) ? "line-through text-gray-400" : ""}`}>
+                {p.name}
+              </Text>
+              <TouchableOpacity onPress={() => toggleDeleteProduct(p.$id)}>
+                <Text className={`text-xs font-rubik-medium ${deletedIds.has(p.$id) ? "text-green-500" : "text-red-400"}`}>
+                  {deletedIds.has(p.$id) ? "Undo" : "Delete"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {p.price != null && (
+              <Text className="text-xs text-gray-500 mt-1">₹{p.price}</Text>
+            )}
+            {p.description ? (
+              <Text className="text-xs text-gray-400 mt-1">{p.description}</Text>
+            ) : null}
+          </View>
+        ))}
+
+        {/* New products */}
+        {newProducts.map((p, index) => (
+          <View key={p.localId} className="border border-primary-200 rounded-xl p-4 mt-3">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="font-rubik-bold text-sm text-black-300">New Product {index + 1}</Text>
+              <TouchableOpacity onPress={() => removeNewProduct(p.localId)}>
+                <Text className="text-red-400 text-xs font-rubik-medium">Remove</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-xs text-gray-500 mb-1">Name <Text className="text-red-500">*</Text></Text>
+            <TextInput
+              placeholder="Product name"
+              value={p.name}
+              onChangeText={(v) => updateNewProduct(p.localId, "name", v)}
+              className="border border-primary-200 rounded-lg px-3 py-2 mb-3"
+            />
+
+            <Text className="text-xs text-gray-500 mb-1">Description</Text>
+            <TextInput
+              placeholder="Product description"
+              value={p.description}
+              onChangeText={(v) => updateNewProduct(p.localId, "description", v)}
+              multiline
+              className="border border-primary-200 rounded-lg px-3 py-2 mb-3 h-16"
+            />
+
+            <Text className="text-xs text-gray-500 mb-1">Price <Text className="text-red-500">*</Text></Text>
+            <TextInput
+              placeholder="0.00"
+              value={p.price}
+              onChangeText={(v) => updateNewProduct(p.localId, "price", v)}
+              keyboardType="decimal-pad"
+              className="border border-primary-200 rounded-lg px-3 py-2 mb-3"
+            />
+
+            <Text className="text-xs text-gray-500 mb-1">Category (optional)</Text>
+            <TextInput
+              placeholder="e.g. Electronics, Snacks..."
+              value={p.category}
+              onChangeText={(v) => updateNewProduct(p.localId, "category", v)}
+              className="border border-primary-200 rounded-lg px-3 py-2"
+            />
+          </View>
+        ))}
+
+        <TouchableOpacity
+          onPress={addNewProduct}
+          className="border border-dashed border-primary-300 rounded-xl py-4 items-center mt-3"
+        >
+          <Text className="text-primary-300 font-rubik-bold">+ Add Product</Text>
+        </TouchableOpacity>
 
         {/* Submit */}
         <TouchableOpacity

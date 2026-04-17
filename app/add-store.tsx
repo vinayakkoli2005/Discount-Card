@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { ID, InputFile } from "react-native-appwrite";
-import { storage, config, databases } from "@/lib/appwrite";
+import { storage, config } from "@/lib/appwrite";
 import icons from "@/constants/icons";
 import {
   getStoreNameError,
@@ -23,7 +23,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 
 import { useGlobalContext } from "@/lib/global-provider";
-import { createStore } from "@/lib/api";
+import { createStore, createProduct } from "@/lib/api";
 import { categories } from "@/constants/data";
 import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
@@ -122,19 +122,15 @@ const AddStore = () => {
   };
 
   const createProducts = async (storeId: string, ownerId: string) => {
-    const dbId = config.databaseId;
-    const colId = config.productsCollectionId;
-    if (!dbId || !colId) throw new Error("Products collection not configured");
-
     for (const p of products) {
       if (!p.name.trim() || !p.description.trim() || !p.price.trim()) continue;
-      await databases.createDocument(dbId, colId, ID.unique(), {
+      await createProduct({
         store_id: storeId,
+        owner_id: ownerId,
         name: p.name.trim(),
         description: p.description.trim(),
         price: parseFloat(p.price),
         category: p.category,
-        owner_id: ownerId,
       });
     }
   };
