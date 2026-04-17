@@ -88,6 +88,31 @@ export async function deleteStore(storeId: string, ownerId: string): Promise<boo
   return res.ok;
 }
 
+type UpdateStoreParams = {
+  ownerId: string;
+  name?: string;
+  category?: string;
+  address?: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  images?: string[];
+};
+
+export async function updateStore(storeId: string, data: UpdateStoreParams): Promise<boolean> {
+  const res = await fetch(`${STORES_ENDPOINT}${storeId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API error:", text);
+  }
+  return res.ok;
+}
+
 export async function createStore(data: CreateStoreParams): Promise<string | null> {
   const res = await fetch(STORES_ENDPOINT, {
     method: "POST",

@@ -217,14 +217,6 @@ const Store = () => {
         </View>
       </ScrollView>
 
-      {/* Bottom CTA */}
-      <View className="absolute bottom-0 w-full bg-white rounded-t-2xl border border-primary-200 p-7">
-        <TouchableOpacity className="bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
-          <Text className="text-white text-lg font-rubik-bold text-center">
-            Show My Discount Card
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };

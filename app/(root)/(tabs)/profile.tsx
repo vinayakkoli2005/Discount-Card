@@ -142,11 +142,32 @@ const Profile = () => {
                   <Text className="font-rubik-bold text-lg flex-1 mr-2">
                     {store.name}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteStore(store.$id, store.name)}
-                  >
-                    <Text className="text-red-400 text-sm font-rubik-medium">Delete</Text>
-                  </TouchableOpacity>
+                  <View className="flex-row gap-3">
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/edit-store",
+                          params: {
+                            id: store.$id,
+                            name: store.name,
+                            category: store.category,
+                            address: store.address,
+                            description: store.description ?? "",
+                            phone: store.phone ?? "",
+                            lat: String(store.latitude ?? ""),
+                            lng: String(store.longitude ?? ""),
+                          },
+                        })
+                      }
+                    >
+                      <Text className="text-primary-300 text-sm font-rubik-medium">Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteStore(store.$id, store.name)}
+                    >
+                      <Text className="text-red-400 text-sm font-rubik-medium">Delete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <Text className="text-sm text-gray-600 mt-1">

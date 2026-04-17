@@ -5,7 +5,9 @@
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
       "mcp__plugin_context-mode_context-mode__ctx_search",
       "Bash(curl:*)",
-      "Bash(iconv -f UTF-16 -t UTF-8)"
+      "Bash(iconv -f UTF-16 -t UTF-8)",
+      "Skill(gsd-do)",
+      "Skill(gsd-quick)"
     ]
   }
 }

@@ -75,6 +75,18 @@ class CreateStorePayload(BaseModel):
     images: list[str] | None = None
 
 
+class UpdateStorePayload(BaseModel):
+    ownerId: str
+    name: str | None = None
+    category: str | None = None
+    address: str | None = None
+    description: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    phone: str | None = None
+    images: list[str] | None = None
+
+
 @router.get("/my")
 def get_my_stores(ownerId: str):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
@@ -274,3 +286,50 @@ def delete_store(id: str, ownerId: str):
     invalidate_cache(f"store:{id}")
 
     return {"ok": True}
+
+
+@router.put("/{id}")
+def update_store(id: str, payload: UpdateStorePayload):
+    if not DATABASE_ID or not STORES_COLLECTION_ID:
+        raise HTTPException(status_code=500, detail="Server misconfiguration")
+
+    try:
+        raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
+        doc = _normalize(raw)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    if doc.get("ownerId") != payload.ownerId:
+        raise HTTPException(status_code=403, detail="Not authorized to update this store")
+
+    data = {}
+    if payload.name is not None:
+        data["name"] = payload.name
+    if payload.category is not None:
+        data["category"] = payload.category
+    if payload.address is not None:
+        data["address"] = payload.address
+    if payload.description is not None:
+        data["description"] = payload.description
+    if payload.latitude is not None:
+        data["latitude"] = payload.latitude
+    if payload.longitude is not None:
+        data["longitude"] = payload.longitude
+    if payload.phone is not None:
+        data["phone"] = payload.phone
+    if payload.images is not None:
+        data["images"] = payload.images
+
+    if not data:
+        return {"ok": True, "data": doc}
+
+    try:
+        updated = tables_db.update_row(DATABASE_ID, STORES_COLLECTION_ID, id, data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    invalidate_cache("stores:")
+    invalidate_cache(f"my-stores:{payload.ownerId}")
+    invalidate_cache(f"store:{id}")
+
+    return {"ok": True, "data": _normalize(updated)}
