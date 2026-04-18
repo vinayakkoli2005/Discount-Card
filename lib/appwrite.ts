@@ -38,14 +38,6 @@ client
   .setProject(config.projectId!)
   .setPlatform(config.Platform!);
 
-  if (__DEV__) {
-  console.log(
-    "APPWRITE ENV CHECK:",
-    config.endpoint,
-    config.projectId
-  );
-}
-
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);
@@ -136,8 +128,6 @@ export async function getCurrentUser() {
       `${config.endpoint}/avatars/initials` +
       `?name=${encodeURIComponent(result.name)}` +
       `&project=${config.projectId}`;
-
-    if (__DEV__) console.log("User Avatar URL:", avatarUrl);
 
     return {
       ...result,

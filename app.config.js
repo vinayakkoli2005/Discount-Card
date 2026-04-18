@@ -19,7 +19,12 @@ export default {
         backgroundColor: "#ffffff",
       },
       package: "com.ds.discountcard",
-      permissions: ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      permissions: [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+      ],
       config: {
         googleMaps: {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -57,7 +62,20 @@ export default {
           ],
         },
       ],
-      "sentry-expo",
+      [
+        "expo-image-picker",
+        {
+          photosPermission:
+            "The app accesses your photos to let you attach images to your store listings.",
+        },
+      ],
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission:
+            "Allow $(PRODUCT_NAME) to use your location to show nearby stores.",
+        },
+      ],
     ],
 
     experiments: {

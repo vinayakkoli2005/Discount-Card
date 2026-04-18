@@ -2,11 +2,16 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { Text, View } from "react-native";
+import { LogBox, Text, View } from "react-native";
 import React from "react";
 
 import "./globals.css";
 import GlobalProvider from "@/lib/global-provider";
+import { wakeBackend } from "@/lib/api";
+
+LogBox.ignoreLogs([
+  "SafeAreaView has been deprecated",
+]);
 
 // Prevent splash from auto-hiding (important)
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -68,6 +73,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    wakeBackend();
+  }, []);
 
   // 🔒 Block render until fonts are ready
   if (!fontsLoaded) {

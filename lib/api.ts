@@ -4,6 +4,29 @@ const API_BASE_URL = "https://discount-card-api.onrender.com";
 const STORES_ENDPOINT = `${API_BASE_URL}/stores/`;
 const PRODUCTS_ENDPOINT = `${API_BASE_URL}/products/`;
 
+const DEFAULT_TIMEOUT_MS = 60_000;
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input as any, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function wakeBackend(): Promise<void> {
+  try {
+    await fetchWithTimeout(`${API_BASE_URL}/`, { method: "GET" }, 65_000);
+  } catch {
+  }
+}
+
 export type Product = {
   $id: string;
   store_id: string;
@@ -49,7 +72,7 @@ export async function fetchStores({
     url.searchParams.set("category", category);
   }
 
-  const res = await fetch(url.toString());
+  const res = await fetchWithTimeout(url.toString());
 
   if (!res.ok) {
     const text = await res.text(); // 🔥 makes debugging easier
@@ -65,7 +88,7 @@ export async function fetchMyStores(ownerId: string): Promise<Store[]> {
   const url = new URL(`${STORES_ENDPOINT}my`);
   url.searchParams.set("ownerId", ownerId);
 
-  const res = await fetch(url.toString());
+  const res = await fetchWithTimeout(url.toString());
 
   if (!res.ok) {
     if (res.status === 404) {
@@ -81,7 +104,7 @@ export async function fetchMyStores(ownerId: string): Promise<Store[]> {
 }
 
 export async function fetchStoreById(id: string): Promise<Store | null> {
-  const res = await fetch(`${STORES_ENDPOINT}${id}`);
+  const res = await fetchWithTimeout(`${STORES_ENDPOINT}${id}`);
 
   if (!res.ok) {
     const text = await res.text();
@@ -96,7 +119,7 @@ export async function fetchStoreById(id: string): Promise<Store | null> {
 export async function deleteStore(storeId: string, ownerId: string): Promise<boolean> {
   const url = new URL(`${STORES_ENDPOINT}${storeId}`);
   url.searchParams.set("ownerId", ownerId);
-  const res = await fetch(url.toString(), { method: "DELETE" });
+  const res = await fetchWithTimeout(url.toString(), { method: "DELETE" });
   return res.ok;
 }
 
@@ -113,7 +136,7 @@ type UpdateStoreParams = {
 };
 
 export async function updateStore(storeId: string, data: UpdateStoreParams): Promise<boolean> {
-  const res = await fetch(`${STORES_ENDPOINT}${storeId}`, {
+  const res = await fetchWithTimeout(`${STORES_ENDPOINT}${storeId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -126,7 +149,7 @@ export async function updateStore(storeId: string, data: UpdateStoreParams): Pro
 }
 
 export async function createStore(data: CreateStoreParams): Promise<string | null> {
-  const res = await fetch(STORES_ENDPOINT, {
+  const res = await fetchWithTimeout(STORES_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -149,7 +172,7 @@ export async function createStore(data: CreateStoreParams): Promise<string | nul
 export async function fetchProductsByStore(storeId: string): Promise<Product[]> {
   const url = new URL(PRODUCTS_ENDPOINT);
   url.searchParams.set("storeId", storeId);
-  const res = await fetch(url.toString());
+  const res = await fetchWithTimeout(url.toString());
   if (!res.ok) return [];
   const json = await res.json();
   return Array.isArray(json?.data) ? json.data : [];
@@ -165,7 +188,7 @@ type CreateProductParams = {
 };
 
 export async function createProduct(data: CreateProductParams): Promise<string | null> {
-  const res = await fetch(PRODUCTS_ENDPOINT, {
+  const res = await fetchWithTimeout(PRODUCTS_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -182,6 +205,6 @@ export async function createProduct(data: CreateProductParams): Promise<string |
 export async function deleteProduct(productId: string, ownerId: string): Promise<boolean> {
   const url = new URL(`${PRODUCTS_ENDPOINT}${productId}`);
   url.searchParams.set("ownerId", ownerId);
-  const res = await fetch(url.toString(), { method: "DELETE" });
+  const res = await fetchWithTimeout(url.toString(), { method: "DELETE" });
   return res.ok;
 }
