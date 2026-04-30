@@ -51,6 +51,14 @@ export async function login() {
   try {
     if (__DEV__) console.log("🔵 LOGIN START");
 
+    // Clear any stale session before starting OAuth — Appwrite forbids creating
+    // a session while one is already active (happens when app resumes).
+    try {
+      await account.deleteSession("current");
+    } catch {
+      // No active session — fine to proceed
+    }
+
     // Create redirect URI (works in Expo, Dev Client, APK)
     const redirectUri = makeRedirectUri({
       scheme: "appwrite-callback-695272a5002c9fe4b025",

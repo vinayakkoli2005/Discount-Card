@@ -1,6 +1,7 @@
 export default {
   expo: {
     name: "discount-card",
+    owner: "vinayaksensei",
     slug: "discount-card",
     version: "1.0.0",
     orientation: "portrait",
@@ -84,7 +85,9 @@ export default {
 
     extra: {
       router: {},
-      eas: {},
+      eas: {
+        projectId: "566fcd96-fbd7-4b0d-a150-7667c2b319f6",
+      },
     },
   },
 };

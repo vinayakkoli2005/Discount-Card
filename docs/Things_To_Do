@@ -1,36 +1,13 @@
-login page
-heading Volo
-     (Vocal for local)
-    discover local Stores nearby
-continue with google - login with google
-
-note
--  no dynnamic photo
--  static photo (volo, discover local Stores nearby )
-- no result -> no stores
-- remove task bar
-- notofication (disable for now)
-- back button
-- delete store (are you sure -> ok,cancle)
-- edit (save ,cancel)
-- profile (des and dev by vinayak(profile or linkedin))
-
-
-store profile
-- distance
-- no likes , fav , heart , stars, reviews
-- about store -> about
-- maps k upar about k neece ( phone when cilick phone opens)
-- whats app ( when click whats open )
-
-home page
- top left vinayak (remove vinayak name, vk icon remove, add hamburger ) -> click ->  profile
- srores- store near you
- search - right -> location icon remove
-
-Add store
-    - phone no( validate )
-    - upload image
-    - ceeate store -> add store
-
-
+Changes to be done
+1. Remove heart icon on home page
+2. Remove star icon on home page and store detail page
+3. Phone number- 10 digits Validation- if exceed 10 digits vhi error message dikhana hai.
+4. Use my current location mein- ek loader lagana hai when system is picking the location, so that user ko pta rhe.
+5. Map preview nhi aa rha hai, showing blank screen.
+6. Write “Coming Soon” side mein on Upload product images with button disabled.
+7. Top right Share and Fav icon on Store detail page pe jab click krenge show a toast message “Coming Soon” . same on Home Page
+8. Pick location from Map feature not working, redirecting to a blank screen.
+9. Phone number not there on Store detail Page.  Call and Whatsapp icon also not there. About store ke neeche and and location ke uprr.
+10. Remove location icon search bar ke side mein from home page.
+11. App name is not changed - Discount Card hi show krrha hai. Change App name and App cover photo
+12. Profile Page pe sbse neeche with grey color. Developed by Vinayak Koli likhna hai.. a simple text message in the centre.

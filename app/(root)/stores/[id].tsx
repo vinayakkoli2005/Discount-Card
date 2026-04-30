@@ -91,8 +91,12 @@ const Store = () => {
               </TouchableOpacity>
 
               <View className="flex flex-row items-center gap-3">
-                <Image source={icons.heart} className="size-7" />
-                <Image source={icons.send} className="size-7" />
+                <TouchableOpacity onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}>
+                  <Image source={icons.heart} className="size-7" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}>
+                  <Image source={icons.send} className="size-7" />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -104,18 +108,11 @@ const Store = () => {
             {store?.name}
           </Text>
 
-          {/* Category + Rating */}
+          {/* Category */}
           <View className="flex flex-row items-center gap-3">
             <View className="px-4 py-2 bg-primary-100 rounded-full">
               <Text className="text-xs font-rubik-bold text-primary-300">
                 {store?.category}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center gap-2">
-              <Image source={icons.star} className="size-5" />
-              <Text className="text-black-200 text-sm font-rubik-medium">
-                {store?.rating} ({store?.reviews?.length} reviews)
               </Text>
             </View>
           </View>
@@ -160,6 +157,35 @@ const Store = () => {
               {store?.description}
             </Text>
           </View>
+
+          {/* Phone + Contact */}
+          {store?.phone && (
+            <View className="mt-7">
+              <Text className="text-black-300 text-xl font-rubik-bold mb-3">
+                Contact
+              </Text>
+              <View className="flex flex-row items-center justify-between border border-primary-200 rounded-xl px-4 py-3">
+                <View className="flex flex-row items-center gap-2">
+                  <Image source={icons.phone} className="size-5" />
+                  <Text className="text-black-200 font-rubik-medium">{store.phone}</Text>
+                </View>
+                <View className="flex flex-row items-center gap-3">
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`tel:${store.phone}`)}
+                    className="bg-primary-300 rounded-full px-4 py-2"
+                  >
+                    <Text className="text-white font-rubik-bold text-xs">Call</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`https://wa.me/91${store.phone}`)}
+                    className="bg-green-500 rounded-full px-4 py-2"
+                  >
+                    <Text className="text-white font-rubik-bold text-xs">WhatsApp</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* Gallery */}
           {(store?.gallery?.length ?? 0) > 0 && (

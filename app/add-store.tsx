@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -64,6 +65,8 @@ const AddStore = () => {
 
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const addImage = async () => {
     if (imageUris.length >= 5) {
       Alert.alert("Limit reached", "You can add up to 5 images");
@@ -158,6 +161,7 @@ const AddStore = () => {
   // ─────────────────────────────
   const useCurrentLocation = async () => {
     try {
+      setIsLocating(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission denied", "Location permission is required");
@@ -170,6 +174,8 @@ const AddStore = () => {
       setLongitude(loc.coords.longitude);
     } catch {
       Alert.alert("Error", "Unable to fetch location. Please try again.");
+    } finally {
+      setIsLocating(false);
     }
   };
 
@@ -322,10 +328,18 @@ const AddStore = () => {
         <TextInput
           placeholder="Phone Number"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(v) => {
+            const digits = v.replace(/\D/g, "").slice(0, 10);
+            setPhone(digits);
+            setPhoneError(digits.length > 0 && digits.length !== 10 ? "Phone number must be exactly 10 digits" : null);
+          }}
           keyboardType="phone-pad"
+          maxLength={10}
           className="border border-primary-200 rounded-lg px-4 py-3 mt-1"
         />
+        {phoneError && (
+          <Text className="text-red-500 text-xs mt-1">{phoneError}</Text>
+        )}
 
         {/* Description */}
         <Text className="text-sm font-rubik-medium text-black-300 mt-4">
@@ -399,10 +413,12 @@ const AddStore = () => {
 
         <TouchableOpacity
           onPress={useCurrentLocation}
-          className="bg-primary-200 py-3 rounded-full mt-4"
+          disabled={isLocating}
+          className="bg-primary-200 py-3 rounded-full mt-4 flex-row items-center justify-center gap-2"
         >
+          {isLocating && <ActivityIndicator size="small" />}
           <Text className="text-center font-rubik-bold">
-            Use My Current Location
+            {isLocating ? "Fetching location..." : "Use My Current Location"}
           </Text>
         </TouchableOpacity>
 
@@ -498,6 +514,16 @@ const AddStore = () => {
               onChangeText={(v) => updateProduct(p.localId, "category", v)}
               className="border border-primary-200 rounded-lg px-3 py-2"
             />
+
+            <View className="flex-row items-center gap-3 mt-3">
+              <TouchableOpacity
+                disabled
+                className="bg-gray-200 rounded-lg px-4 py-2 opacity-50"
+              >
+                <Text className="text-gray-500 font-rubik-medium text-xs">Upload Image</Text>
+              </TouchableOpacity>
+              <Text className="text-gray-400 text-xs font-rubik-medium">Coming Soon</Text>
+            </View>
           </View>
         ))}
 

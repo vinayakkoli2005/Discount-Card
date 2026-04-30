@@ -253,6 +253,17 @@ export default function Index() {
               <Image source={icons.person} style={{ width: 20, height: 20, marginRight: 12 }} />
               <Text style={{ fontSize: 16, color: "#191d31" }}>Profile</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu();
+                setTimeout(() => router.push("/developer"), 220);
+              }}
+              style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" }}
+            >
+              <Image source={icons.info} style={{ width: 20, height: 20, marginRight: 12, tintColor: "#0061FF" }} />
+              <Text style={{ fontSize: 16, color: "#0061FF", fontWeight: "600" }}>Developer Info</Text>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Dimmed overlay — closes the sidebar */}
@@ -294,26 +305,15 @@ export default function Index() {
               <Image source={icons.bell} className="size-6" />
             </View>
 
-            {/* SEARCH + LOCATION ICON */}
-            <View className="mt-4 flex flex-row items-center gap-3">
+            {/* SEARCH */}
+            <View className="mt-4">
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search stores"
-                className="flex-1 bg-gray-100 rounded-xl px-4 py-3"
+                className="bg-gray-100 rounded-xl px-4 py-3"
                 returnKeyType="search"
               />
-
-              <Pressable
-                onPress={enableLocationSorting}
-                className="bg-gray-100 rounded-xl p-3"
-              >
-                {isLocating ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Image source={icons.location} className="size-5" />
-                )}
-              </Pressable>
             </View>
 
             <Text className="text-xl font-rubik-bold text-black-300 mt-6">
