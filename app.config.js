@@ -31,7 +31,7 @@ export default {
         foregroundImage: "./assets/images/Logo.png",
         backgroundColor: "#ffffff",
       },
-      package: "com.ds.discountcard",
+      package: "io.volo.app",
       permissions: [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
