@@ -55,3 +55,6 @@ __pycache__/
 
 # VS Code temp runner files (may contain secrets)
 tempCodeRunnerFile.*
+
+# Google Play service account key (contains private credentials)
+google-play-service-account.json

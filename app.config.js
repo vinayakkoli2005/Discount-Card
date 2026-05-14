@@ -1,22 +1,34 @@
 export default {
   expo: {
-    name: "discount-card",
+    name: "Volo",
     owner: "vinayaksensei",
     slug: "discount-card",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/images/Logo.png",
     scheme: "appwrite-callback-695272a5002c9fe4b025",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
 
     ios: {
       supportsTablet: true,
+      bundleIdentifier: "com.ds.discountcard",
+      buildNumber: "1",
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription:
+          "Allow $(PRODUCT_NAME) to use your location to show nearby stores.",
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          "Allow $(PRODUCT_NAME) to use your location to show nearby stores.",
+        NSPhotoLibraryUsageDescription:
+          "The app accesses your photos to let you attach images to your store listings.",
+        NSCameraUsageDescription:
+          "The app uses your camera to let you take photos for store listings.",
+      },
     },
 
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/icon.png",
+        foregroundImage: "./assets/images/Logo.png",
         backgroundColor: "#ffffff",
       },
       package: "com.ds.discountcard",
