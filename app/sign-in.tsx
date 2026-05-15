@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, StatusBar, TextInput } from 'react-native';
+import React, { useEffect } from "react";
+import { StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Alert,
@@ -16,9 +16,6 @@ import { useGlobalContext } from "@/lib/global-provider";
 
 const SignIn = () => {
   const { refetch, loading, isLogged, user } = useGlobalContext();
-  const [showDemo, setShowDemo] = useState(false);
-  const [demoEmail, setDemoEmail] = useState("demo@volo.app");
-  const [demoPassword, setDemoPassword] = useState("VoloDemo@123");
 
   useEffect(() => {
     if (__DEV__ && !loading && isLogged && user) {
@@ -38,11 +35,11 @@ const SignIn = () => {
   };
 
   const handleDemoLogin = async () => {
-    const result = await loginDemo(demoEmail, demoPassword);
+    const result = await loginDemo();
     if (result) {
       refetch();
     } else {
-      Alert.alert("Demo Login Failed", "Invalid credentials. Please try again.");
+      Alert.alert("Demo Login Failed", "Unable to access demo account. Please try again.");
     }
   };
 
@@ -94,41 +91,12 @@ const SignIn = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setShowDemo(v => !v)}
+          onPress={handleDemoLogin}
           style={styles.demoButton}
           activeOpacity={0.7}
         >
           <Text style={styles.demoButtonText}>Try Demo</Text>
         </TouchableOpacity>
-
-        {showDemo && (
-          <View style={styles.demoForm}>
-            <TextInput
-              style={styles.demoInput}
-              value={demoEmail}
-              onChangeText={setDemoEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholder="Email"
-              placeholderTextColor="#9CA3AF"
-            />
-            <TextInput
-              style={styles.demoInput}
-              value={demoPassword}
-              onChangeText={setDemoPassword}
-              secureTextEntry
-              placeholder="Password"
-              placeholderTextColor="#9CA3AF"
-            />
-            <TouchableOpacity
-              onPress={handleDemoLogin}
-              style={styles.demoSubmit}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.demoSubmitText}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <Text style={styles.terms}>
           By continuing, you agree to our Terms & Privacy Policy
@@ -249,39 +217,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik-Medium',
     fontSize: 15,
     color: '#0061FF',
-  },
-
-  demoForm: {
-    width: '100%',
-    marginTop: 12,
-    gap: 10,
-  },
-
-  demoInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontFamily: 'Rubik-Regular',
-    fontSize: 14,
-    color: '#191D31',
-    backgroundColor: '#F9FAFB',
-  },
-
-  demoSubmit: {
-    backgroundColor: '#0061FF',
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: 'center',
-    marginTop: 2,
-  },
-
-  demoSubmitText: {
-    fontFamily: 'Rubik-SemiBold',
-    fontSize: 15,
-    color: '#ffffff',
   },
 
   terms: {
