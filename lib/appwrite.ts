@@ -109,13 +109,10 @@ export async function login() {
     return false;
   }
 }
-export async function loginDemo(): Promise<boolean> {
+export async function loginDemo(email: string, password: string): Promise<boolean> {
   try {
     try { await account.deleteSession("current"); } catch {}
-    await account.createEmailPasswordSession(
-      "demo@volo.app",
-      "VoloDemo@123"
-    );
+    await account.createEmailPasswordSession(email, password);
     return true;
   } catch (error) {
     console.error("🔥 DEMO LOGIN FAILED", error);
