@@ -152,8 +152,7 @@ export async function getCurrentUser() {
       ...result,
       avatar: avatarUrl, // ✅ REAL URL STRING
     };
-  } catch (error) {
-    console.log(error);
+  } catch {
     return null;
   }
 }

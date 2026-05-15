@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -17,11 +17,6 @@ import { useGlobalContext } from "@/lib/global-provider";
 const SignIn = () => {
   const { refetch, loading, isLogged, user } = useGlobalContext();
 
-  useEffect(() => {
-    if (__DEV__ && !loading && isLogged && user) {
-      console.log("User:", user);
-    }
-  }, [loading, isLogged, user]);
 
   if (!loading && isLogged) return <Redirect href="/" />;
 
