@@ -20,7 +20,7 @@ import * as WebBrowser from "expo-web-browser";
 
 
 export const config = {
-  Platform: 'com.ds.discountcard',
+  Platform: 'io.volo.app',
   endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
   projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
   databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID,
@@ -109,6 +109,20 @@ export async function login() {
     return false;
   }
 }
+export async function loginDemo(): Promise<boolean> {
+  try {
+    try { await account.deleteSession("current"); } catch {}
+    await account.createEmailPasswordSession(
+      "demo@volo.app",
+      "VoloDemo@123"
+    );
+    return true;
+  } catch (error) {
+    console.error("🔥 DEMO LOGIN FAILED", error);
+    return false;
+  }
+}
+
 export async function isLoggedIn(): Promise<boolean> {
   try {
     const user = await account.get();

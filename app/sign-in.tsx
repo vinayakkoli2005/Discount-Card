@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import images from '@/constants/images';
 import icons from '@/constants/icons';
-import { login } from '@/lib/appwrite';
+import { login, loginDemo } from '@/lib/appwrite';
 import { Redirect } from "expo-router";
 import { useGlobalContext } from "@/lib/global-provider";
 
@@ -31,6 +31,15 @@ const SignIn = () => {
       refetch();
     } else {
       Alert.alert("Login Failed", "Unable to login. Please try again.");
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    const result = await loginDemo();
+    if (result) {
+      refetch();
+    } else {
+      Alert.alert("Demo Login Failed", "Unable to access demo account. Please try again.");
     }
   };
 
@@ -79,6 +88,14 @@ const SignIn = () => {
             resizeMode="contain"
           />
           <Text style={styles.buttonText}>Login with Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleDemoLogin}
+          style={styles.demoButton}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.demoButtonText}>Try Demo</Text>
         </TouchableOpacity>
 
         <Text style={styles.terms}>
@@ -182,6 +199,24 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#ffffff',
     marginLeft: 12,
+  },
+
+  demoButton: {
+    marginTop: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#0061FF40',
+    backgroundColor: '#0061FF08',
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  demoButtonText: {
+    fontFamily: 'Rubik-Medium',
+    fontSize: 15,
+    color: '#0061FF',
   },
 
   terms: {
