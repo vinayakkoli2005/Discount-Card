@@ -27,7 +27,7 @@ import { useGlobalContext } from "@/lib/global-provider";
 import { createStore, createProduct } from "@/lib/api";
 import { categories } from "@/constants/data";
 import { Picker } from "@react-native-picker/picker";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as ImagePicker from "expo-image-picker";
 
 
@@ -354,57 +354,35 @@ const AddStore = () => {
         />
 
         {/* Images */}
-        <Text className="text-lg font-rubik-bold mt-8">
-          Store Images{" "}
-          <Text className="text-sm text-gray-400 font-rubik">(up to 5)</Text>
-        </Text>
+        <View className="flex-row items-center gap-3 mt-8">
+          <Text className="text-lg font-rubik-bold">Store Images</Text>
+          <Text className="text-gray-400 text-xs font-rubik-medium">Coming Soon</Text>
+        </View>
 
+        <View
+          style={{ opacity: 0.45 }}
+          pointerEvents="none"
+        >
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
           <View className="flex-row gap-3">
-            {imageUris.map((uri, index) => (
-              <View key={index} className="relative">
-                <Image
-                  source={{ uri }}
-                  style={{ width: 90, height: 90, borderRadius: 10 }}
-                />
-                <TouchableOpacity
-                  onPress={() => removeImage(index)}
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    right: -6,
-                    backgroundColor: "#ef4444",
-                    borderRadius: 10,
-                    width: 20,
-                    height: 20,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ color: "white", fontSize: 12, fontWeight: "bold" }}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-
-            {imageUris.length < 5 && (
-              <TouchableOpacity
-                onPress={addImage}
-                style={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 10,
-                  borderWidth: 1.5,
-                  borderColor: "#a8c5fa",
-                  borderStyle: "dashed",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text style={{ fontSize: 28, color: "#a8c5fa" }}>+</Text>
-              </TouchableOpacity>
-            )}
+            <View
+              style={{
+                width: 90,
+                height: 90,
+                borderRadius: 10,
+                borderWidth: 1.5,
+                borderColor: "#a8c5fa",
+                borderStyle: "dashed",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f5f8ff",
+              }}
+            >
+              <Text style={{ fontSize: 28, color: "#a8c5fa" }}>+</Text>
+            </View>
           </View>
         </ScrollView>
+        </View>
 
         {/* Location */}
         <Text className="text-lg font-rubik-bold mt-8">
@@ -439,6 +417,7 @@ const AddStore = () => {
         {latitude && longitude && (
         <View className="mt-4 rounded-xl overflow-hidden border border-primary-200">
             <MapView
+            provider={PROVIDER_GOOGLE}
             style={{ width: "100%", height: 300 }}
             region={{
                 latitude,

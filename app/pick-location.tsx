@@ -1,4 +1,4 @@
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { View, TouchableOpacity, Text } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
@@ -9,6 +9,7 @@ export default function PickLocation() {
   return (
     <View className="flex-1">
       <MapView
+        provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}
         initialRegion={{
           latitude: 28.6139,

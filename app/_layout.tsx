@@ -10,8 +10,14 @@ import GlobalProvider from "@/lib/global-provider";
 import { wakeBackend } from "@/lib/api";
 
 LogBox.ignoreLogs([
-  "SafeAreaView has been deprecated",
+  /SafeAreaView has been deprecated/,
 ]);
+
+const _warn = console.warn;
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === "string" && args[0].includes("SafeAreaView has been deprecated")) return;
+  _warn(...args);
+};
 
 // Prevent splash from auto-hiding (important)
 SplashScreen.preventAutoHideAsync().catch(() => {});

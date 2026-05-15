@@ -302,7 +302,9 @@ export default function Index() {
                 <View className="w-6 h-0.5 bg-black-300" />
               </TouchableOpacity>
 
-              <Image source={icons.bell} className="size-6" />
+              <TouchableOpacity onPress={() => Alert.alert("Coming Soon", "Notifications are coming soon!")}>
+                <Image source={icons.bell} className="size-6" />
+              </TouchableOpacity>
             </View>
 
             {/* SEARCH */}
