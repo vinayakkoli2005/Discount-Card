@@ -58,3 +58,9 @@ tempCodeRunnerFile.*
 
 # Google Play service account key (contains private credentials)
 google-play-service-account.json
+
+# CodeGraph analysis artifacts
+.codegraph/
+
+# Claude Code local settings
+.claude/
