@@ -11,6 +11,7 @@ from slowapi.errors import RateLimitExceeded
 
 from routes.stores import router as stores_router
 from routes.products import router as products_router
+from routes.favorites import router as favorites_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,6 +50,7 @@ app.add_middleware(
 
 app.include_router(stores_router, prefix="/stores")
 app.include_router(products_router, prefix="/products")
+app.include_router(favorites_router, prefix="/favorites")
 
 
 @app.get("/")

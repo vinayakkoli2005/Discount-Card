@@ -14,16 +14,18 @@ import icons from "@/constants/icons";
 import images from "@/constants/images";
 import Comment from "@/components/Comment";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAppwrite } from "@/lib/useAppwrite";
-import { fetchStoreById, fetchProductsByStore, Product } from "@/lib/api";
+import { fetchStoreById, fetchProductsByStore, fetchFavorites, addFavorite, removeFavorite, Product } from "@/lib/api";
 import { getFileUrl } from "@/lib/appwrite";
 import { Linking, Alert } from "react-native";
+import { useGlobalContext } from "@/lib/global-provider";
 
 
 const Store = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const windowHeight = Dimensions.get("window").height;
+  const { user } = useGlobalContext();
 
   const { data: store } = useAppwrite({
     fn: async ({ id }: { id: string }) => fetchStoreById(id),
@@ -32,12 +34,38 @@ const Store = () => {
     },
   });
   const [products, setProducts] = useState<Product[]>([]);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     if (store?.$id) {
       fetchProductsByStore(store.$id).then(setProducts);
     }
   }, [store?.$id]);
+
+  useEffect(() => {
+    if (!store?.$id || !user) return;
+    fetchFavorites().then((favs) => {
+      const match = favs.find((f) => f.storeId === store.$id);
+      setFavoriteId(match?.$id ?? null);
+    });
+  }, [store?.$id, user]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!store?.$id || favoriteLoading) return;
+    setFavoriteLoading(true);
+    try {
+      if (favoriteId) {
+        await removeFavorite(favoriteId);
+        setFavoriteId(null);
+      } else {
+        const fav = await addFavorite(store.$id);
+        setFavoriteId(fav?.$id ?? null);
+      }
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }, [store?.$id, favoriteId, favoriteLoading]);
 
   const openInMaps = () => {
     if (!store?.latitude || !store?.longitude) {
@@ -96,8 +124,12 @@ const Store = () => {
               </TouchableOpacity>
 
               <View className="flex flex-row items-center gap-3">
-                <TouchableOpacity onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}>
-                  <Image source={icons.heart} className="size-7" />
+                <TouchableOpacity onPress={toggleFavorite} disabled={favoriteLoading}>
+                  <Image
+                    source={icons.heart}
+                    className="size-7"
+                    style={favoriteId ? { tintColor: "#ef4444" } : undefined}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}>
                   <Image source={icons.send} className="size-7" />
@@ -266,26 +298,37 @@ const Store = () => {
                   key={product.$id}
                   className="border border-primary-200 rounded-xl p-4 mt-3"
                 >
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-rubik-bold text-base flex-1 mr-2">
-                      {product.name}
-                    </Text>
-                    {product.price != null && (
-                      <Text className="text-primary-300 font-rubik-bold">
-                        ₹{product.price}
-                      </Text>
+                  <View className="flex-row items-start gap-3">
+                    {product.image_id && (
+                      <Image
+                        source={{ uri: getFileUrl(product.image_id) }}
+                        style={{ width: 64, height: 64, borderRadius: 8 }}
+                        resizeMode="cover"
+                      />
                     )}
+                    <View className="flex-1">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="font-rubik-bold text-base flex-1 mr-2">
+                          {product.name}
+                        </Text>
+                        {product.price != null && (
+                          <Text className="text-primary-300 font-rubik-bold">
+                            ₹{product.price}
+                          </Text>
+                        )}
+                      </View>
+                      {product.category ? (
+                        <Text className="text-xs text-gray-400 mt-1">
+                          {product.category}
+                        </Text>
+                      ) : null}
+                      {product.description ? (
+                        <Text className="text-sm text-black-200 mt-1">
+                          {product.description}
+                        </Text>
+                      ) : null}
+                    </View>
                   </View>
-                  {product.category ? (
-                    <Text className="text-xs text-gray-400 mt-1">
-                      {product.category}
-                    </Text>
-                  ) : null}
-                  {product.description ? (
-                    <Text className="text-sm text-black-200 mt-1">
-                      {product.description}
-                    </Text>
-                  ) : null}
                 </View>
               ))}
             </View>

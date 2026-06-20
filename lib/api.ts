@@ -175,6 +175,7 @@ type CreateProductParams = {
   category: string;
   price?: number;
   description?: string;
+  image_id?: string;
 };
 
 export async function createProduct(data: CreateProductParams): Promise<string | null> {
@@ -196,6 +197,45 @@ export async function createProduct(data: CreateProductParams): Promise<string |
 export async function deleteProduct(productId: string): Promise<boolean> {
   const authHeaders = await getAuthHeaders();
   const res = await fetchWithTimeout(`${PRODUCTS_ENDPOINT}${productId}`, {
+    method: "DELETE",
+    headers: authHeaders,
+  });
+  return res.ok;
+}
+
+// ─── Favorites ───────────────────────────────────────────────────────────────
+
+export type Favorite = {
+  $id: string;
+  userId: string;
+  storeId: string;
+};
+
+const FAVORITES_ENDPOINT = `${API_BASE_URL}/favorites/`;
+
+export async function fetchFavorites(): Promise<Favorite[]> {
+  const headers = await getAuthHeaders();
+  const res = await fetchWithTimeout(FAVORITES_ENDPOINT, { headers });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+export async function addFavorite(storeId: string): Promise<Favorite | null> {
+  const authHeaders = await getAuthHeaders();
+  const res = await fetchWithTimeout(FAVORITES_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders },
+    body: JSON.stringify({ storeId }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json?.data ?? null;
+}
+
+export async function removeFavorite(favoriteId: string): Promise<boolean> {
+  const authHeaders = await getAuthHeaders();
+  const res = await fetchWithTimeout(`${FAVORITES_ENDPOINT}${favoriteId}`, {
     method: "DELETE",
     headers: authHeaders,
   });

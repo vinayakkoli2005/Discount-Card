@@ -41,6 +41,7 @@ type ProductInput = {
   description: string;
   price: string;
   category: string;
+  imageUri: string;
 };
 
 const AddStore = () => {
@@ -110,8 +111,22 @@ const AddStore = () => {
   const addProduct = () => {
     setProducts((prev) => [
       ...prev,
-      { localId: Date.now().toString(), name: "", description: "", price: "", category: "" },
+      { localId: Date.now().toString(), name: "", description: "", price: "", category: "", imageUri: "" },
     ]);
+  };
+
+  const pickProductImage = async (localId: string) => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { Alert.alert("Permission denied"); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setProducts((prev) =>
+        prev.map((p) => p.localId === localId ? { ...p, imageUri: result.assets[0].uri } : p)
+      );
+    }
   };
 
   const removeProduct = (localId: string) => {
@@ -125,14 +140,24 @@ const AddStore = () => {
   };
 
   const createProducts = async (storeId: string) => {
+    const bucketId = config.storeImagesBucketId;
     for (const p of products) {
       if (!p.name.trim() || !p.description.trim() || !p.price.trim()) continue;
+      let image_id: string | undefined;
+      if (p.imageUri && bucketId) {
+        const rawName = p.imageUri.split("/").pop()?.split("?")[0] || "image.jpg";
+        const fileName = /\.(jpg|jpeg|png|webp|heic)$/i.test(rawName) ? rawName : `${rawName}.jpg`;
+        const file = InputFile.fromURI(p.imageUri, fileName);
+        const uploaded = await storage.createFile(bucketId, ID.unique(), file);
+        image_id = uploaded.$id;
+      }
       await createProduct({
         store_id: storeId,
         name: p.name.trim(),
         description: p.description.trim(),
         price: parseFloat(p.price),
         category: p.category,
+        image_id,
       });
     }
   };
@@ -500,13 +525,25 @@ const AddStore = () => {
             />
 
             <View className="flex-row items-center gap-3 mt-3">
-              <TouchableOpacity
-                disabled
-                className="bg-gray-200 rounded-lg px-4 py-2 opacity-50"
-              >
-                <Text className="text-gray-500 font-rubik-medium text-xs">Upload Image</Text>
-              </TouchableOpacity>
-              <Text className="text-gray-400 text-xs font-rubik-medium">Coming Soon</Text>
+              {p.imageUri ? (
+                <View className="relative">
+                  <Image source={{ uri: p.imageUri }} style={{ width: 64, height: 64, borderRadius: 8 }} />
+                  <TouchableOpacity
+                    onPress={() => setProducts((prev) => prev.map((q) => q.localId === p.localId ? { ...q, imageUri: "" } : q))}
+                    style={{ position: "absolute", top: -6, right: -6, backgroundColor: "#ef4444", borderRadius: 10, width: 18, height: 18, alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => pickProductImage(p.localId)}
+                  style={{ borderWidth: 1.5, borderColor: "#a8c5fa", borderStyle: "dashed", borderRadius: 8, width: 64, height: 64, alignItems: "center", justifyContent: "center", backgroundColor: "#f5f8ff" }}
+                >
+                  <Text style={{ fontSize: 22, color: "#a8c5fa" }}>+</Text>
+                  <Text style={{ fontSize: 9, color: "#a8c5fa" }}>Photo</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ))}
