@@ -201,7 +201,6 @@ const EditStore = () => {
 
     try {
       const ok = await updateStore(params.id, {
-        ownerId: user.$id,
         name,
         category,
         address,
@@ -223,7 +222,7 @@ const EditStore = () => {
 
     // Delete marked products
     for (const pid of deletedIds) {
-      await deleteProduct(pid, user.$id);
+      await deleteProduct(pid);
     }
 
     // Create new products
@@ -231,7 +230,6 @@ const EditStore = () => {
       if (!p.name.trim() || !p.price.trim()) continue;
       await createProduct({
         store_id: params.id!,
-        owner_id: user.$id,
         name: p.name.trim(),
         description: p.description.trim(),
         price: parseFloat(p.price),

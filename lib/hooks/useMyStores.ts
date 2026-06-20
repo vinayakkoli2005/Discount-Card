@@ -30,7 +30,7 @@ export function useMyStores(userId: string | undefined): UseMyStoresResult {
 
     setIsReady(false);
 
-    fetchMyStores(userId)
+    fetchMyStores()
       .then((data) => {
         if (!isMounted) return;
         setStores(data.filter(isValidStore));

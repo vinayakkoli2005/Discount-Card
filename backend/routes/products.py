@@ -1,11 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from appwrite_client import tables_db
 from cache import get_cache, set_cache, invalidate_cache
+from auth import verify_user
 from appwrite.query import Query
 from appwrite.id import ID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
@@ -35,8 +38,7 @@ def _normalize(doc):
             return doc
     out = {}
     for k, v in doc.items():
-        key = _FIELD_MAP.get(k, k)
-        out[key] = v
+        out[_FIELD_MAP.get(k, k)] = v
     return out
 
 
@@ -56,20 +58,18 @@ def _rows(result):
 
 class CreateProductPayload(BaseModel):
     store_id: str
-    owner_id: str
-    name: str
-    category: str
+    name: str = Field(max_length=200)
+    category: str = Field(default="", max_length=100)
     price: float | None = None
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=1000)
     image_id: str | None = None
 
 
 class UpdateProductPayload(BaseModel):
-    owner_id: str
-    name: str | None = None
-    category: str | None = None
+    name: str | None = Field(default=None, max_length=200)
+    category: str | None = Field(default=None, max_length=100)
     price: float | None = None
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=1000)
 
 
 @router.get("/")
@@ -90,20 +90,21 @@ def get_products(storeId: str):
         )
         products = _rows(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("get_products error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch products")
 
     set_cache(cache_key, products)
     return {"source": "db", "data": products}
 
 
 @router.post("/")
-def create_product(payload: CreateProductPayload):
+def create_product(payload: CreateProductPayload, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not PRODUCTS_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
     data: dict = {
         "store_id": payload.store_id,
-        "owner_id": payload.owner_id,
+        "owner_id": user_id,
         "name": payload.name,
         "category": payload.category,
     }
@@ -115,21 +116,17 @@ def create_product(payload: CreateProductPayload):
         data["image_id"] = payload.image_id
 
     try:
-        created = tables_db.create_row(
-            DATABASE_ID,
-            PRODUCTS_COLLECTION_ID,
-            ID.unique(),
-            data,
-        )
+        created = tables_db.create_row(DATABASE_ID, PRODUCTS_COLLECTION_ID, ID.unique(), data)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("create_product error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to create product")
 
     invalidate_cache(f"products:{payload.store_id}")
     return {"ok": True, "data": _normalize(created)}
 
 
 @router.put("/{id}")
-def update_product(id: str, payload: UpdateProductPayload):
+def update_product(id: str, payload: UpdateProductPayload, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not PRODUCTS_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
@@ -139,8 +136,8 @@ def update_product(id: str, payload: UpdateProductPayload):
     except Exception:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    if doc.get("owner_id") != payload.owner_id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this product")
+    if doc.get("owner_id") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     data: dict = {}
     if payload.name is not None:
@@ -158,14 +155,15 @@ def update_product(id: str, payload: UpdateProductPayload):
     try:
         updated = tables_db.update_row(DATABASE_ID, PRODUCTS_COLLECTION_ID, id, data)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("update_product error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to update product")
 
     invalidate_cache(f"products:{doc.get('store_id')}")
     return {"ok": True, "data": _normalize(updated)}
 
 
 @router.delete("/{id}")
-def delete_product(id: str, ownerId: str):
+def delete_product(id: str, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not PRODUCTS_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
@@ -175,13 +173,14 @@ def delete_product(id: str, ownerId: str):
     except Exception:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    if doc.get("owner_id") != ownerId:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this product")
+    if doc.get("owner_id") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     try:
         tables_db.delete_row(DATABASE_ID, PRODUCTS_COLLECTION_ID, id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("delete_product error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to delete product")
 
     invalidate_cache(f"products:{doc.get('store_id')}")
     return {"ok": True}

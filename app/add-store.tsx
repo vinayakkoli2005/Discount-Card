@@ -124,12 +124,11 @@ const AddStore = () => {
     );
   };
 
-  const createProducts = async (storeId: string, ownerId: string) => {
+  const createProducts = async (storeId: string) => {
     for (const p of products) {
       if (!p.name.trim() || !p.description.trim() || !p.price.trim()) continue;
       await createProduct({
         store_id: storeId,
-        owner_id: ownerId,
         name: p.name.trim(),
         description: p.description.trim(),
         price: parseFloat(p.price),
@@ -235,7 +234,6 @@ const AddStore = () => {
         description,
         latitude,
         longitude,
-        ownerId: user.$id,
         images: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
       });
     } catch {
@@ -250,7 +248,7 @@ const AddStore = () => {
 
     if (products.length > 0 && storeId) {
       try {
-        await createProducts(storeId, user.$id);
+        await createProducts(storeId);
       } catch {
         Alert.alert("Warning", "Store created but some products failed to save");
       }

@@ -1,20 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from appwrite_client import tables_db
 from cache import get_cache, set_cache, invalidate_cache
+from auth import verify_user
 from appwrite.query import Query
 from appwrite.id import ID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
 
-
-# Appwrite v1.8 TablesDB responses use flat (no-$) system field names in some places.
-
-# Frontend code (isValidStore, etc.) expects $-prefixed names. Map both directions.
 _FIELD_MAP = {
     "id": "$id",
     "createdat": "$createdAt",
@@ -28,13 +27,9 @@ _FIELD_MAP = {
 
 
 def _normalize(doc):
-    """Normalize an Appwrite v1.8 row/document to a plain dict with $-prefixed system fields.
-    Keeps ALL other keys (column data) untouched.
-    """
     if doc is None:
         return None
     if not isinstance(doc, dict):
-        # Typed SDK model → try to_map(), then __dict__
         if hasattr(doc, "to_map") and callable(doc.to_map):
             doc = doc.to_map()
         elif hasattr(doc, "__dict__"):
@@ -43,13 +38,11 @@ def _normalize(doc):
             return doc
     out = {}
     for k, v in doc.items():
-        key = _FIELD_MAP.get(k, k)
-        out[key] = v
+        out[_FIELD_MAP.get(k, k)] = v
     return out
 
 
 def _rows(result):
-    """Extract row list from list_rows response (dict with 'rows' or 'documents' key)."""
     if result is None:
         return []
     if not isinstance(result, dict):
@@ -64,35 +57,33 @@ def _rows(result):
 
 
 class CreateStorePayload(BaseModel):
-    name: str
-    category: str
-    address: str
-    description: str
+    name: str = Field(max_length=200)
+    category: str = Field(max_length=100)
+    address: str = Field(max_length=500)
+    description: str = Field(max_length=2000)
     latitude: float
     longitude: float
-    ownerId: str
-    phone: str | None = None
+    phone: str | None = Field(default=None, max_length=20)
     images: list[str] | None = None
 
 
 class UpdateStorePayload(BaseModel):
-    ownerId: str
-    name: str | None = None
-    category: str | None = None
-    address: str | None = None
-    description: str | None = None
+    name: str | None = Field(default=None, max_length=200)
+    category: str | None = Field(default=None, max_length=100)
+    address: str | None = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=2000)
     latitude: float | None = None
     longitude: float | None = None
-    phone: str | None = None
+    phone: str | None = Field(default=None, max_length=20)
     images: list[str] | None = None
 
 
 @router.get("/my")
-def get_my_stores(ownerId: str):
+def get_my_stores(user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
-    cache_key = f"my-stores:{ownerId}"
+    cache_key = f"my-stores:{user_id}"
     cached = get_cache(cache_key)
     if cached is not None:
         return {"source": "cache", "data": cached}
@@ -101,11 +92,12 @@ def get_my_stores(ownerId: str):
         result = tables_db.list_rows(
             DATABASE_ID,
             STORES_COLLECTION_ID,
-            queries=[Query.equal("ownerId", ownerId)],
+            queries=[Query.equal("ownerId", user_id)],
         )
         documents = _rows(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("get_my_stores error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch stores")
 
     set_cache(cache_key, documents)
     return {"source": "db", "data": documents}
@@ -125,7 +117,8 @@ def get_store_by_id(id: str):
         raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
         doc = _normalize(raw)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("get_store_by_id error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch store")
 
     payload = {
         **(doc or {}),
@@ -149,17 +142,12 @@ def get_stores(
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
-    cache_key = (
-        f"stores:{limit}:{offset}:{query or 'all'}:{category or 'all'}"
-    )
-
+    cache_key = f"stores:{limit}:{offset}:{query or 'all'}:{category or 'all'}"
     cached = get_cache(cache_key)
     if cached is not None:
         return {"source": "cache", "data": cached}
 
     try:
-        documents = []
-
         if query:
             base_filters = []
             if category and category != "All":
@@ -168,38 +156,23 @@ def get_stores(
             candidate_limit = max(limit + offset, limit)
 
             by_name = tables_db.list_rows(
-                DATABASE_ID,
-                STORES_COLLECTION_ID,
-                queries=[
-                    *base_filters,
-                    Query.search("name", query),
-                    Query.limit(candidate_limit),
-                    Query.offset(0),
-                ],
+                DATABASE_ID, STORES_COLLECTION_ID,
+                queries=[*base_filters, Query.search("name", query),
+                         Query.limit(candidate_limit), Query.offset(0)],
             )
-
             by_address = tables_db.list_rows(
-                DATABASE_ID,
-                STORES_COLLECTION_ID,
-                queries=[
-                    *base_filters,
-                    Query.search("address", query),
-                    Query.limit(candidate_limit),
-                    Query.offset(0),
-                ],
+                DATABASE_ID, STORES_COLLECTION_ID,
+                queries=[*base_filters, Query.search("address", query),
+                         Query.limit(candidate_limit), Query.offset(0)],
             )
 
-            merged = {}
+            merged: dict = {}
             for doc in _rows(by_name) + _rows(by_address):
                 if doc.get("$id"):
                     merged[doc["$id"]] = doc
 
-            merged_documents = list(merged.values())
-            merged_documents.sort(
-                key=lambda d: d.get("$createdAt", ""),
-                reverse=True,
-            )
-            documents = merged_documents[offset : offset + limit]
+            sorted_docs = sorted(merged.values(), key=lambda d: d.get("$createdAt", ""), reverse=True)
+            documents = sorted_docs[offset: offset + limit]
 
         else:
             base_filters = []
@@ -207,26 +180,22 @@ def get_stores(
                 base_filters.append(Query.equal("category", category))
 
             result = tables_db.list_rows(
-                DATABASE_ID,
-                STORES_COLLECTION_ID,
-                queries=[
-                    *base_filters,
-                    Query.order_desc("$createdAt"),
-                    Query.limit(limit),
-                    Query.offset(offset),
-                ],
+                DATABASE_ID, STORES_COLLECTION_ID,
+                queries=[*base_filters, Query.order_desc("$createdAt"),
+                         Query.limit(limit), Query.offset(offset)],
             )
             documents = _rows(result)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("get_stores error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch stores")
 
     set_cache(cache_key, documents)
     return {"source": "db", "data": documents}
 
 
 @router.post("/")
-def create_store(payload: CreateStorePayload):
+def create_store(payload: CreateStorePayload, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
@@ -238,7 +207,7 @@ def create_store(payload: CreateStorePayload):
             "description": payload.description,
             "latitude": payload.latitude,
             "longitude": payload.longitude,
-            "ownerId": payload.ownerId,
+            "ownerId": user_id,
             "rating": 0,
             "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
         }
@@ -247,23 +216,18 @@ def create_store(payload: CreateStorePayload):
         if payload.images:
             data["images"] = payload.images
 
-        created = tables_db.create_row(
-            DATABASE_ID,
-            STORES_COLLECTION_ID,
-            ID.unique(),
-            data,
-        )
+        created = tables_db.create_row(DATABASE_ID, STORES_COLLECTION_ID, ID.unique(), data)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("create_store error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to create store")
 
     invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{payload.ownerId}")
-
+    invalidate_cache(f"my-stores:{user_id}")
     return {"ok": True, "data": _normalize(created)}
 
 
 @router.delete("/{id}")
-def delete_store(id: str, ownerId: str):
+def delete_store(id: str, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
@@ -273,23 +237,23 @@ def delete_store(id: str, ownerId: str):
     except Exception:
         raise HTTPException(status_code=404, detail="Store not found")
 
-    if doc.get("ownerId") != ownerId:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this store")
+    if doc.get("ownerId") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     try:
         tables_db.delete_row(DATABASE_ID, STORES_COLLECTION_ID, id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("delete_store error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to delete store")
 
     invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{ownerId}")
+    invalidate_cache(f"my-stores:{user_id}")
     invalidate_cache(f"store:{id}")
-
     return {"ok": True}
 
 
 @router.put("/{id}")
-def update_store(id: str, payload: UpdateStorePayload):
+def update_store(id: str, payload: UpdateStorePayload, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
@@ -299,10 +263,10 @@ def update_store(id: str, payload: UpdateStorePayload):
     except Exception:
         raise HTTPException(status_code=404, detail="Store not found")
 
-    if doc.get("ownerId") != payload.ownerId:
-        raise HTTPException(status_code=403, detail="Not authorized to update this store")
+    if doc.get("ownerId") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
-    data = {}
+    data: dict = {}
     if payload.name is not None:
         data["name"] = payload.name
     if payload.category is not None:
@@ -326,10 +290,10 @@ def update_store(id: str, payload: UpdateStorePayload):
     try:
         updated = tables_db.update_row(DATABASE_ID, STORES_COLLECTION_ID, id, data)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("update_store error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to update store")
 
     invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{payload.ownerId}")
+    invalidate_cache(f"my-stores:{user_id}")
     invalidate_cache(f"store:{id}")
-
     return {"ok": True, "data": _normalize(updated)}
