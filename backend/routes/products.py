@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Response
 from appwrite_client import tables_db
 from auth import verify_user
+from db_utils import normalize as _normalize, rows as _rows
 from appwrite.query import Query
 from appwrite.id import ID
 from pydantic import BaseModel, Field
@@ -12,44 +13,6 @@ router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 PRODUCTS_COLLECTION_ID = os.getenv("APPWRITE_PRODUCTS_COLLECTION_ID")
-
-_FIELD_MAP = {
-    "id": "$id",
-    "createdat": "$createdAt",
-    "updatedat": "$updatedAt",
-    "permissions": "$permissions",
-    "databaseid": "$databaseId",
-    "collectionid": "$collectionId",
-    "sequence": "$sequence",
-    "tableid": "$tableId",
-}
-
-
-def _normalize(doc):
-    if doc is None:
-        return None
-    if not isinstance(doc, dict):
-        if hasattr(doc, "to_map") and callable(doc.to_map):
-            doc = doc.to_map()
-        elif hasattr(doc, "__dict__"):
-            doc = dict(vars(doc))
-        else:
-            return doc
-    return {_FIELD_MAP.get(k, k): v for k, v in doc.items()}
-
-
-def _rows(result):
-    if result is None:
-        return []
-    if not isinstance(result, dict):
-        if hasattr(result, "to_map") and callable(result.to_map):
-            result = result.to_map()
-        elif hasattr(result, "__dict__"):
-            result = dict(vars(result))
-        else:
-            return []
-    raw = result.get("rows") or result.get("documents") or []
-    return [_normalize(r) for r in raw]
 
 
 class CreateProductPayload(BaseModel):
