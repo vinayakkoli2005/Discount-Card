@@ -157,6 +157,12 @@ export async function getCurrentUser() {
   }
 }
 
+export function getFileUrl(fileId: string): string {
+  if (!fileId || !config.storeImagesBucketId) return "";
+  const url = storage.getFileView(config.storeImagesBucketId, fileId);
+  return url.toString();
+}
+
 export async function getLatestProperties() {
   try {
     const result = await databases.listDocuments(

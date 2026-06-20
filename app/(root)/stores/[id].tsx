@@ -17,6 +17,7 @@ import Comment from "@/components/Comment";
 import { useState, useEffect } from "react";
 import { useAppwrite } from "@/lib/useAppwrite";
 import { fetchStoreById, fetchProductsByStore, Product } from "@/lib/api";
+import { getFileUrl } from "@/lib/appwrite";
 import { Linking, Alert } from "react-native";
 
 
@@ -66,7 +67,11 @@ const Store = () => {
         {/* Store Image */}
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
           <Image
-            source={{ uri: store?.image }}
+            source={{
+              uri: store?.images?.length
+                ? getFileUrl(store.images[0])
+                : store?.image ?? undefined,
+            }}
             className="size-full"
             resizeMode="cover"
           />
@@ -184,6 +189,26 @@ const Store = () => {
                   </TouchableOpacity>
                 </View>
               </View>
+            </View>
+          )}
+
+          {/* Uploaded Photos */}
+          {(store?.images?.length ?? 0) > 1 && (
+            <View className="mt-7">
+              <Text className="text-black-300 text-xl font-rubik-bold">
+                Photos
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+                <View className="flex-row gap-3">
+                  {store!.images!.map((fileId: string) => (
+                    <Image
+                      key={fileId}
+                      source={{ uri: getFileUrl(fileId) }}
+                      style={{ width: 160, height: 160, borderRadius: 12 }}
+                    />
+                  ))}
+                </View>
+              </ScrollView>
             </View>
           )}
 

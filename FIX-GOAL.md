@@ -73,5 +73,6 @@ Fix every issue in `AUDIT-ISSUES.md` — security, reliability, and broken/incom
 
 ## PROGRESS LOG
 <!-- Claude appends one line per completed phase: date — phase — outcome -->
+2026-06-21 — Phase 3 — COMPLETE: added getFileUrl() to appwrite.ts; [id].tsx hero uses images[0] with Unsplash fallback; Photos section added for multi-image scrolling; add-store image picker enabled (removed "Coming Soon" disabled wrapper). F3 (product images) deferred — asked user. F4 (Unsplash fallback kept as default for stores with no uploads).
 2026-06-21 — Phase 2 — COMPLETE: removed in-memory cache.py from stores.py + products.py; added Cache-Control headers (public/private, 30–60s TTL) on all GET endpoints; fulltext indexes on name+address confirmed available; generic error messages + server-side logging in place.
 2026-06-21 — Phase 1 — COMPLETE: auth.py JWT dependency added; stores.py + products.py rewritten with Depends(verify_user) + ownership checks; lib/api.ts rewritten with getAuthHeaders(); add-store/edit-store/useMyStores updated to remove client-supplied ownerIds; all 6 Appwrite tables locked (properties/agents/galleries/reviews/products → read("any") only; user_events → []). PENDING: rotate server API key (S5).
