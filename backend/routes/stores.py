@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from appwrite_client import tables_db
-from cache import get_cache, set_cache, invalidate_cache
 from auth import verify_user
 from appwrite.query import Query
 from appwrite.id import ID
@@ -36,10 +35,7 @@ def _normalize(doc):
             doc = dict(vars(doc))
         else:
             return doc
-    out = {}
-    for k, v in doc.items():
-        out[_FIELD_MAP.get(k, k)] = v
-    return out
+    return {_FIELD_MAP.get(k, k): v for k, v in doc.items()}
 
 
 def _rows(result):
@@ -79,14 +75,9 @@ class UpdateStorePayload(BaseModel):
 
 
 @router.get("/my")
-def get_my_stores(user_id: str = Depends(verify_user)):
+def get_my_stores(response: Response, user_id: str = Depends(verify_user)):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
-
-    cache_key = f"my-stores:{user_id}"
-    cached = get_cache(cache_key)
-    if cached is not None:
-        return {"source": "cache", "data": cached}
 
     try:
         result = tables_db.list_rows(
@@ -99,19 +90,14 @@ def get_my_stores(user_id: str = Depends(verify_user)):
         logger.error("get_my_stores error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch stores")
 
-    set_cache(cache_key, documents)
+    response.headers["Cache-Control"] = "private, max-age=30"
     return {"source": "db", "data": documents}
 
 
 @router.get("/{id}")
-def get_store_by_id(id: str):
+def get_store_by_id(id: str, response: Response):
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
-
-    cache_key = f"store:{id}"
-    cached = get_cache(cache_key)
-    if cached is not None:
-        return {"source": "cache", "data": cached}
 
     try:
         raw = tables_db.get_row(DATABASE_ID, STORES_COLLECTION_ID, id)
@@ -128,12 +114,13 @@ def get_store_by_id(id: str):
         "agent": (doc or {}).get("agent"),
     }
 
-    set_cache(cache_key, payload)
+    response.headers["Cache-Control"] = "public, max-age=60"
     return {"source": "db", "data": payload}
 
 
 @router.get("/")
 def get_stores(
+    response: Response,
     limit: int = 10,
     offset: int = 0,
     query: str | None = None,
@@ -142,47 +129,47 @@ def get_stores(
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
-    cache_key = f"stores:{limit}:{offset}:{query or 'all'}:{category or 'all'}"
-    cached = get_cache(cache_key)
-    if cached is not None:
-        return {"source": "cache", "data": cached}
-
     try:
+        base_filters = []
+        if category and category != "All":
+            base_filters.append(Query.equal("category", category))
+
         if query:
-            base_filters = []
-            if category and category != "All":
-                base_filters.append(Query.equal("category", category))
-
-            candidate_limit = max(limit + offset, limit)
-
-            by_name = tables_db.list_rows(
+            # Fetch up to 200 results from name search with fulltext index,
+            # then apply offset/limit in memory so pagination is correct.
+            name_result = tables_db.list_rows(
                 DATABASE_ID, STORES_COLLECTION_ID,
-                queries=[*base_filters, Query.search("name", query),
-                         Query.limit(candidate_limit), Query.offset(0)],
+                queries=[*base_filters, Query.search("name", query), Query.limit(200)],
             )
-            by_address = tables_db.list_rows(
-                DATABASE_ID, STORES_COLLECTION_ID,
-                queries=[*base_filters, Query.search("address", query),
-                         Query.limit(candidate_limit), Query.offset(0)],
-            )
-
             merged: dict = {}
-            for doc in _rows(by_name) + _rows(by_address):
+            for doc in _rows(name_result):
                 if doc.get("$id"):
                     merged[doc["$id"]] = doc
 
-            sorted_docs = sorted(merged.values(), key=lambda d: d.get("$createdAt", ""), reverse=True)
+            # Secondary address search to broaden results
+            addr_result = tables_db.list_rows(
+                DATABASE_ID, STORES_COLLECTION_ID,
+                queries=[*base_filters, Query.search("address", query), Query.limit(200)],
+            )
+            for doc in _rows(addr_result):
+                if doc.get("$id") and doc["$id"] not in merged:
+                    merged[doc["$id"]] = doc
+
+            sorted_docs = sorted(
+                merged.values(),
+                key=lambda d: d.get("$createdAt", ""),
+                reverse=True,
+            )
             documents = sorted_docs[offset: offset + limit]
-
         else:
-            base_filters = []
-            if category and category != "All":
-                base_filters.append(Query.equal("category", category))
-
             result = tables_db.list_rows(
                 DATABASE_ID, STORES_COLLECTION_ID,
-                queries=[*base_filters, Query.order_desc("$createdAt"),
-                         Query.limit(limit), Query.offset(offset)],
+                queries=[
+                    *base_filters,
+                    Query.order_desc("$createdAt"),
+                    Query.limit(limit),
+                    Query.offset(offset),
+                ],
             )
             documents = _rows(result)
 
@@ -190,7 +177,7 @@ def get_stores(
         logger.error("get_stores error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch stores")
 
-    set_cache(cache_key, documents)
+    response.headers["Cache-Control"] = "public, max-age=30"
     return {"source": "db", "data": documents}
 
 
@@ -199,30 +186,28 @@ def create_store(payload: CreateStorePayload, user_id: str = Depends(verify_user
     if not DATABASE_ID or not STORES_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
 
-    try:
-        data = {
-            "name": payload.name,
-            "category": payload.category,
-            "address": payload.address,
-            "description": payload.description,
-            "latitude": payload.latitude,
-            "longitude": payload.longitude,
-            "ownerId": user_id,
-            "rating": 0,
-            "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
-        }
-        if payload.phone:
-            data["phone"] = payload.phone
-        if payload.images:
-            data["images"] = payload.images
+    data = {
+        "name": payload.name,
+        "category": payload.category,
+        "address": payload.address,
+        "description": payload.description,
+        "latitude": payload.latitude,
+        "longitude": payload.longitude,
+        "ownerId": user_id,
+        "rating": 0,
+        "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914",
+    }
+    if payload.phone:
+        data["phone"] = payload.phone
+    if payload.images:
+        data["images"] = payload.images
 
+    try:
         created = tables_db.create_row(DATABASE_ID, STORES_COLLECTION_ID, ID.unique(), data)
     except Exception as e:
         logger.error("create_store error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create store")
 
-    invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{user_id}")
     return {"ok": True, "data": _normalize(created)}
 
 
@@ -246,9 +231,6 @@ def delete_store(id: str, user_id: str = Depends(verify_user)):
         logger.error("delete_store error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to delete store")
 
-    invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{user_id}")
-    invalidate_cache(f"store:{id}")
     return {"ok": True}
 
 
@@ -267,22 +249,14 @@ def update_store(id: str, payload: UpdateStorePayload, user_id: str = Depends(ve
         raise HTTPException(status_code=403, detail="Not authorized")
 
     data: dict = {}
-    if payload.name is not None:
-        data["name"] = payload.name
-    if payload.category is not None:
-        data["category"] = payload.category
-    if payload.address is not None:
-        data["address"] = payload.address
-    if payload.description is not None:
-        data["description"] = payload.description
-    if payload.latitude is not None:
-        data["latitude"] = payload.latitude
-    if payload.longitude is not None:
-        data["longitude"] = payload.longitude
-    if payload.phone is not None:
-        data["phone"] = payload.phone
-    if payload.images is not None:
-        data["images"] = payload.images
+    for field, val in [
+        ("name", payload.name), ("category", payload.category),
+        ("address", payload.address), ("description", payload.description),
+        ("latitude", payload.latitude), ("longitude", payload.longitude),
+        ("phone", payload.phone), ("images", payload.images),
+    ]:
+        if val is not None:
+            data[field] = val
 
     if not data:
         return {"ok": True, "data": doc}
@@ -293,7 +267,4 @@ def update_store(id: str, payload: UpdateStorePayload, user_id: str = Depends(ve
         logger.error("update_store error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to update store")
 
-    invalidate_cache("stores:")
-    invalidate_cache(f"my-stores:{user_id}")
-    invalidate_cache(f"store:{id}")
     return {"ok": True, "data": _normalize(updated)}

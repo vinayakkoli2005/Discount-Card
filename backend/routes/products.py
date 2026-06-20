@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from appwrite_client import tables_db
-from cache import get_cache, set_cache, invalidate_cache
 from auth import verify_user
 from appwrite.query import Query
 from appwrite.id import ID
@@ -36,10 +35,7 @@ def _normalize(doc):
             doc = dict(vars(doc))
         else:
             return doc
-    out = {}
-    for k, v in doc.items():
-        out[_FIELD_MAP.get(k, k)] = v
-    return out
+    return {_FIELD_MAP.get(k, k): v for k, v in doc.items()}
 
 
 def _rows(result):
@@ -73,14 +69,9 @@ class UpdateProductPayload(BaseModel):
 
 
 @router.get("/")
-def get_products(storeId: str):
+def get_products(storeId: str, response: Response):
     if not DATABASE_ID or not PRODUCTS_COLLECTION_ID:
         raise HTTPException(status_code=500, detail="Server misconfiguration")
-
-    cache_key = f"products:{storeId}"
-    cached = get_cache(cache_key)
-    if cached is not None:
-        return {"source": "cache", "data": cached}
 
     try:
         result = tables_db.list_rows(
@@ -93,7 +84,7 @@ def get_products(storeId: str):
         logger.error("get_products error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch products")
 
-    set_cache(cache_key, products)
+    response.headers["Cache-Control"] = "public, max-age=60"
     return {"source": "db", "data": products}
 
 
@@ -121,7 +112,6 @@ def create_product(payload: CreateProductPayload, user_id: str = Depends(verify_
         logger.error("create_product error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create product")
 
-    invalidate_cache(f"products:{payload.store_id}")
     return {"ok": True, "data": _normalize(created)}
 
 
@@ -140,14 +130,12 @@ def update_product(id: str, payload: UpdateProductPayload, user_id: str = Depend
         raise HTTPException(status_code=403, detail="Not authorized")
 
     data: dict = {}
-    if payload.name is not None:
-        data["name"] = payload.name
-    if payload.category is not None:
-        data["category"] = payload.category
-    if payload.price is not None:
-        data["price"] = payload.price
-    if payload.description is not None:
-        data["description"] = payload.description
+    for field, val in [
+        ("name", payload.name), ("category", payload.category),
+        ("price", payload.price), ("description", payload.description),
+    ]:
+        if val is not None:
+            data[field] = val
 
     if not data:
         return {"ok": True, "data": doc}
@@ -158,7 +146,6 @@ def update_product(id: str, payload: UpdateProductPayload, user_id: str = Depend
         logger.error("update_product error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to update product")
 
-    invalidate_cache(f"products:{doc.get('store_id')}")
     return {"ok": True, "data": _normalize(updated)}
 
 
@@ -182,5 +169,4 @@ def delete_product(id: str, user_id: str = Depends(verify_user)):
         logger.error("delete_product error: %s", e)
         raise HTTPException(status_code=500, detail="Failed to delete product")
 
-    invalidate_cache(f"products:{doc.get('store_id')}")
     return {"ok": True}

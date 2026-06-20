@@ -73,4 +73,5 @@ Fix every issue in `AUDIT-ISSUES.md` — security, reliability, and broken/incom
 
 ## PROGRESS LOG
 <!-- Claude appends one line per completed phase: date — phase — outcome -->
+2026-06-21 — Phase 2 — COMPLETE: removed in-memory cache.py from stores.py + products.py; added Cache-Control headers (public/private, 30–60s TTL) on all GET endpoints; fulltext indexes on name+address confirmed available; generic error messages + server-side logging in place.
 2026-06-21 — Phase 1 — COMPLETE: auth.py JWT dependency added; stores.py + products.py rewritten with Depends(verify_user) + ownership checks; lib/api.ts rewritten with getAuthHeaders(); add-store/edit-store/useMyStores updated to remove client-supplied ownerIds; all 6 Appwrite tables locked (properties/agents/galleries/reviews/products → read("any") only; user_events → []). PENDING: rotate server API key (S5).
