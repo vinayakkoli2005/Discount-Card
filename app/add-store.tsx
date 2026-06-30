@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ID, InputFile } from "react-native-appwrite";
+import { ID } from "react-native-appwrite";
 import { storage, config } from "@/lib/appwrite";
 import icons from "@/constants/icons";
 import {
@@ -98,8 +98,7 @@ const AddStore = () => {
     for (const uri of imageUris) {
       const rawName = uri.split("/").pop()?.split("?")[0] || "image.jpg";
       const fileName = /\.(jpg|jpeg|png|webp|heic)$/i.test(rawName) ? rawName : `${rawName}.jpg`;
-      const file = InputFile.fromURI(uri, fileName);
-      const uploaded = await storage.createFile(bucketId, ID.unique(), file);
+      const uploaded = await storage.createFile(bucketId, ID.unique(), { uri, name: fileName, type: "image/jpeg", size: 0 } as any);
       fileIds.push(uploaded.$id);
     }
     return fileIds;
@@ -147,8 +146,7 @@ const AddStore = () => {
       if (p.imageUri && bucketId) {
         const rawName = p.imageUri.split("/").pop()?.split("?")[0] || "image.jpg";
         const fileName = /\.(jpg|jpeg|png|webp|heic)$/i.test(rawName) ? rawName : `${rawName}.jpg`;
-        const file = InputFile.fromURI(p.imageUri, fileName);
-        const uploaded = await storage.createFile(bucketId, ID.unique(), file);
+        const uploaded = await storage.createFile(bucketId, ID.unique(), { uri: p.imageUri, name: fileName, type: "image/jpeg", size: 0 } as any);
         image_id = uploaded.$id;
       }
       await createProduct({

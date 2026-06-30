@@ -12,7 +12,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
-import { ID, InputFile } from "react-native-appwrite";
+import { ID } from "react-native-appwrite";
 import MapView, { Marker } from "react-native-maps";
 import { Picker } from "@react-native-picker/picker";
 
@@ -111,8 +111,7 @@ const EditStore = () => {
       const fileName = /\.(jpg|jpeg|png|webp|heic)$/i.test(rawName)
         ? rawName
         : `${rawName}.jpg`;
-      const file = InputFile.fromURI(uri, fileName);
-      const uploaded = await storage.createFile(bucketId, ID.unique(), file);
+      const uploaded = await storage.createFile(bucketId, ID.unique(), { uri, name: fileName, type: "image/jpeg", size: 0 } as any);
       fileIds.push(uploaded.$id);
     }
     return fileIds;
