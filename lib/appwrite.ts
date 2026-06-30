@@ -158,9 +158,11 @@ export async function getCurrentUser() {
 }
 
 export function getFileUrl(fileId: string): string {
-  if (!fileId || !config.storeImagesBucketId) return "";
-  const url = storage.getFileView(config.storeImagesBucketId, fileId);
-  return url.toString();
+  const endpoint = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT;
+  const projectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID;
+  const bucketId = config.storeImagesBucketId;
+  if (!fileId || !bucketId || !endpoint || !projectId) return "";
+  return `${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;
 }
 
 export async function getLatestProperties() {

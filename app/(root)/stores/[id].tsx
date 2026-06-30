@@ -96,9 +96,9 @@ const Store = () => {
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
           <Image
             source={{
-              uri: store?.images?.length
-                ? getFileUrl(store.images[0])
-                : store?.image ?? undefined,
+              uri: store?.image
+                || (store?.images?.length ? getFileUrl(store.images[0]) : undefined)
+                || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=640&q=60",
             }}
             className="size-full"
             resizeMode="cover"
