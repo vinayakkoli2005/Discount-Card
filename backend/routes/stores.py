@@ -13,6 +13,13 @@ router = APIRouter()
 
 DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
 STORES_COLLECTION_ID = os.getenv("APPWRITE_PROPERTIES_COLLECTION_ID")
+_APPWRITE_ENDPOINT = os.getenv("APPWRITE_ENDPOINT", "").rstrip("/")
+_APPWRITE_PROJECT = os.getenv("APPWRITE_PROJECT_ID", "")
+_STORE_IMAGES_BUCKET = "store-images"
+
+
+def _file_view_url(file_id: str) -> str:
+    return f"{_APPWRITE_ENDPOINT}/storage/buckets/{_STORE_IMAGES_BUCKET}/files/{file_id}/view?project={_APPWRITE_PROJECT}"
 
 
 class CreateStorePayload(BaseModel):
@@ -164,6 +171,7 @@ def create_store(payload: CreateStorePayload, user_id: str = Depends(verify_user
         data["phone"] = payload.phone
     if payload.images:
         data["images"] = payload.images
+        data["image"] = _file_view_url(payload.images[0])
 
     try:
         created = tables_db.create_row(DATABASE_ID, STORES_COLLECTION_ID, ID.unique(), data)
