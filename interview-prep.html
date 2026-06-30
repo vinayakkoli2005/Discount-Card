@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volo — Interview Prep</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1a1a2e;
+      background: #fff;
+      padding: 0;
+    }
+
+    /* ---------- COVER PAGE ---------- */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0061FF 0%, #003fa3 100%);
+      color: white;
+      text-align: center;
+      page-break-after: always;
+      padding: 48px 40px;
+    }
+    .cover h1 { font-size: 40px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .cover .sub { font-size: 17px; opacity: 0.85; margin-bottom: 20px; }
+    .cover .meta { font-size: 13px; opacity: 0.7; line-height: 1.8; }
+    .cover .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 50px;
+      padding: 6px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---------- LAYOUT ---------- */
+    .page { padding: 28px 44px; max-width: 860px; margin: 0 auto; }
+
+    /* ---------- SECTION HEADERS ---------- */
+    .section-label {
+      display: inline-block;
+      background: #0061FF;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border-radius: 4px;
+      padding: 3px 10px;
+      margin-bottom: 5px;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0d0d2b;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+    .section-intro {
+      font-size: 13px;
+      color: #555;
+      border-left: 3px solid #0061FF;
+      padding-left: 12px;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0d0d2b;
+      margin: 14px 0 4px;
+    }
+    p { margin-bottom: 8px; color: #333; }
+    ul, ol { padding-left: 20px; margin-bottom: 8px; }
+    li { margin-bottom: 3px; color: #333; }
+
+    /* ---------- DIVIDER ---------- */
+    .divider {
+      border: none;
+      border-top: 1px solid #e8eaf0;
+      margin: 16px 0;
+    }
+
+    /* ---------- CALLOUT BOX ---------- */
+    .callout {
+      background: #f0f5ff;
+      border-left: 4px solid #0061FF;
+      border-radius: 0 8px 8px 0;
+      padding: 9px 14px;
+      margin: 10px 0;
+    }
+    .callout strong { color: #0061FF; }
+
+    .warn {
+      background: #fff8f0;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 9px 14px;
+      margin: 10px 0;
+    }
+    .warn strong { color: #b45309; }
+
+    /* ---------- TABLE ---------- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 12px;
+      font-size: 12px;
+    }
+    th {
+      background: #0061FF;
+      color: white;
+      text-align: left;
+      padding: 6px 12px;
+      font-weight: 600;
+    }
+    td {
+      padding: 5px 12px;
+      border-bottom: 1px solid #eef0f6;
+      color: #333;
+    }
+    tr:nth-child(even) td { background: #f8f9ff; }
+
+    /* ---------- JD MATCH ---------- */
+    .match-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 7px 0;
+      border-bottom: 1px solid #eef0f6;
+    }
+    .match-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .yes { background: #dcfce7; color: #16a34a; }
+    .partial { background: #fef9c3; color: #a16207; }
+    .no { background: #fee2e2; color: #dc2626; }
+    .match-content strong { font-size: 13px; color: #0d0d2b; }
+    .match-content p { font-size: 12px; color: #555; margin: 1px 0 0; }
+
+    /* ---------- PAGE BREAKS ---------- */
+    .page-break { page-break-before: always; }
+
+    /* ---------- TOC ---------- */
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dotted #dde1ef;
+      font-size: 13px;
+    }
+    .toc-item span:first-child { color: #333; }
+    .toc-item span:last-child { color: #0061FF; font-weight: 600; }
+
+    /* ---------- PRINT ---------- */
+    @media print {
+      body { font-size: 13px; }
+      .cover { height: 100vh; }
+      .page { padding: 40px 50px; }
+      h2 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════ -->
+<div class="cover">
+  <div class="badge">Interview Preparation Document</div>
+  <h1>Volo</h1>
+  <p class="sub">Complete Project Walkthrough — In Plain English</p>
+  <p class="meta">
+    Vinayak Koli &nbsp;·&nbsp; B.Tech CSE &nbsp;·&nbsp; IIIT Delhi 2023–2027<br/>
+    vinayak23597@iiitd.ac.in &nbsp;·&nbsp; github.com/vinayakkoli2005
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     TABLE OF CONTENTS
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Navigation</div>
+  <h2>What's Inside</h2>
+  <p class="section-intro">Eight sections covering the full project from architecture to deployment, plus a JD match analysis.</p>
+
+  <div class="toc-item"><span>Section 1 &nbsp;—&nbsp; Project Overview &amp; Architecture</span><span>3</span></div>
+  <div class="toc-item"><span>Section 2 &nbsp;—&nbsp; FastAPI Backend Deep Dive</span><span>4</span></div>
+  <div class="toc-item"><span>Section 3 &nbsp;—&nbsp; REST API Design</span><span>5</span></div>
+  <div class="toc-item"><span>Section 4 &nbsp;—&nbsp; Appwrite &amp; the TablesDB Migration</span><span>6</span></div>
+  <div class="toc-item"><span>Section 5 &nbsp;—&nbsp; Caching Strategy</span><span>7</span></div>
+  <div class="toc-item"><span>Section 6 &nbsp;—&nbsp; Authorization &amp; Security</span><span>8</span></div>
+  <div class="toc-item"><span>Section 7 &nbsp;—&nbsp; React Native Frontend</span><span>9</span></div>
+  <div class="toc-item"><span>Section 8 &nbsp;—&nbsp; Deployment &amp; Infrastructure</span><span>10</span></div>
+  <div class="toc-item"><span>JD Match &nbsp;—&nbsp; Vara5 Role Alignment</span><span>11</span></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 1 — OVERVIEW
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 1</div>
+  <h2>Project Overview &amp; Architecture</h2>
+  <p class="section-intro">The big picture — what Volo is, how it's structured, and why each technology was chosen.</p>
+
+  <h3>What is Volo?</h3>
+  <p>Volo is a local store discovery app for Android. Users open the app, see shops near them on a map or list, browse what's in stock, and visit in person. Store owners can list their shop, add products, and reach nearby customers — all for free with no commission fees. The app is currently in closed testing on Google Play under the package name <strong>io.volo.app</strong>.</p>
+
+  <h3>The 3-Tier Architecture</h3>
+  <p>The project is split into three clear layers, each with a single responsibility:</p>
+  <ul>
+    <li><strong>Tier 1 — Frontend:</strong> A React Native app built with Expo. This is what the user sees and touches on their Android phone. It fetches data from the backend and displays it.</li>
+    <li><strong>Tier 2 — Backend:</strong> A FastAPI server written in Python, hosted on Render. This is the brain — it handles business logic, caching, authorization checks, and talks to the database on behalf of the app.</li>
+    <li><strong>Tier 3 — Data Layer:</strong> Appwrite Cloud — a hosted database, authentication, and file storage service. The backend reads and writes all data here using a private server API key.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Key design decision:</strong> The mobile app never reads or writes store data directly to Appwrite. It always goes through the FastAPI backend. The only thing the app does directly with Appwrite is handle user login (Google Sign-In).
+  </div>
+
+  <h3>Why Each Technology?</h3>
+  <table>
+    <tr><th>Layer</th><th>Technology</th><th>Reason</th></tr>
+    <tr><td>Mobile App</td><td>React Native + Expo</td><td>Write once, run on Android. Expo removes the need to configure Android Studio manually.</td></tr>
+    <tr><td>Routing</td><td>Expo Router</td><td>File-based routing — the file name is the screen URL, just like Next.js.</td></tr>
+    <tr><td>Styling</td><td>NativeWind</td><td>Tailwind CSS class names inside React Native. Familiar, fast to write.</td></tr>
+    <tr><td>Backend</td><td>FastAPI (Python)</td><td>Fast to build, automatic API docs, clean request validation with Pydantic.</td></tr>
+    <tr><td>Hosting</td><td>Render (free tier)</td><td>Zero-cost deployment. Trade-off: server sleeps after inactivity (cold start delay).</td></tr>
+    <tr><td>Database + Auth</td><td>Appwrite Cloud</td><td>Hosted backend-as-a-service. Gives database, Google login, and file storage in one.</td></tr>
+    <tr><td>Build &amp; Publish</td><td>EAS Build + Play Store</td><td>Expo's cloud build service compiles the app to an AAB file for Play Store submission.</td></tr>
+    <tr><td>Website</td><td>Static HTML on Vercel</td><td>No framework needed for a landing page. Fast and free to deploy.</td></tr>
+  </table>
+
+  <h3>The "Realestate to Discount" History</h3>
+  <p>The Git branch is named <em>realestate-to-discount</em> and one environment variable is called <em>APPWRITE_PROPERTIES_COLLECTION_ID</em> — even though it stores shops, not properties. This is because the app started as a real estate listing project and was repurposed. Renaming the env var on the live server carried risk of breaking the deployment, so the name was kept. This is a real-world example of inherited naming debt and pragmatic decision-making.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 2 — FASTAPI
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 2</div>
+  <h2>FastAPI Backend Deep Dive</h2>
+  <p class="section-intro">How FastAPI works, how the backend is organized, and what each file does.</p>
+
+  <h3>What is FastAPI?</h3>
+  <p>FastAPI is a Python web framework for building APIs. Three things make it stand out: it uses Python type hints so you declare what data a function expects and FastAPI enforces it automatically; it uses Pydantic so request bodies are typed Python objects, not raw dictionaries; and it auto-generates interactive API documentation at the <em>/docs</em> URL with zero extra work.</p>
+
+  <h3>How the Backend is Organized</h3>
+  <p>The backend has four files, each with one job:</p>
+  <ul>
+    <li><strong>main.py:</strong> The entry point. Creates the FastAPI app, registers the two routers (stores and products), and defines two utility endpoints — a health check and the account deletion page.</li>
+    <li><strong>appwrite_client.py:</strong> Sets up the connection to Appwrite using the server API key stored in environment variables. Creates one shared client object that the whole app reuses.</li>
+    <li><strong>cache.py:</strong> A simple in-memory cache with a 60-second expiry. Stores data in a Python dictionary so repeated API calls return instantly without hitting Appwrite again.</li>
+    <li><strong>routes/stores.py and routes/products.py:</strong> All the actual API endpoint logic, split by resource.</li>
+  </ul>
+
+  <h3>Modular Routing with APIRouter</h3>
+  <p>Instead of putting all endpoints in one giant file, FastAPI lets you split them into separate router files. Each router is like a mini-app. The main file mounts each router with a prefix — so every route inside the stores router automatically gets <em>/stores</em> added to the front of its URL. This keeps the codebase clean and each resource self-contained.</p>
+
+  <h3>Pydantic Models — Automatic Validation</h3>
+  <p>Every POST and PUT request body is defined as a Pydantic model — a Python class where each field has a declared type. When a request arrives, FastAPI reads the JSON body and tries to build that class from it. If any required field is missing or the wrong type, FastAPI automatically rejects the request with a 422 error and a clear explanation — before your code even runs. Optional fields are declared with a default value of None.</p>
+  <p>Two model classes exist per resource: one for creating (all required fields mandatory) and one for updating (all data fields optional, so clients can send only what changed).</p>
+
+  <h3>The Appwrite Client Setup</h3>
+  <p>The Appwrite client is initialized once when the server starts. It reads three values from environment variables — the API endpoint, the project ID, and the server API key. Using environment variables means these secrets never appear in the code or on GitHub. On Render (production), these values are set in the Render dashboard. Locally, they live in a .env file that is gitignored.</p>
+
+  <div class="callout">
+    <strong>The server API key has admin-level access</strong> — it can read and write any data in the project. This is why it must never appear in the mobile app. The app uses a limited client session; the backend uses the powerful server key.
+  </div>
+
+  <h3>How Errors Are Returned</h3>
+  <p>Every route starts with a guard clause — it checks that the required environment variables exist. If they don't, it immediately returns a 500 error with a clear message. For business logic errors like "store not found" or "not authorized," the code raises an HTTPException with the appropriate status code. FastAPI catches this and converts it into a clean JSON error response automatically.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 3 — REST API
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 3</div>
+  <h2>REST API Design</h2>
+  <p class="section-intro">What REST is, how your API follows its principles, and a complete map of every endpoint.</p>
+
+  <h3>Did You Build a RESTful API? Yes.</h3>
+  <p>REST stands for Representational State Transfer. It is a set of rules for designing APIs so that any client can talk to any server in a predictable way. Your API follows all the core rules:</p>
+  <ul>
+    <li><strong>URLs are nouns, not verbs.</strong> The URL names the thing you're working with — /stores, /products. What you're doing to it (create, read, update, delete) is expressed by the HTTP method, not the URL.</li>
+    <li><strong>HTTP methods as verbs.</strong> GET means read. POST means create. PUT means update. DELETE means delete. This is consistent across every endpoint in your API.</li>
+    <li><strong>Status codes communicate results.</strong> 200 for success, 403 for forbidden, 404 for not found, 422 for bad input, 500 for server errors.</li>
+    <li><strong>Stateless.</strong> Every request contains everything the server needs. The server holds no memory of previous requests. Each call is independent.</li>
+  </ul>
+
+  <h3>Complete Endpoint Map</h3>
+  <table>
+    <tr><th>Method</th><th>URL</th><th>What It Does</th></tr>
+    <tr><td>GET</td><td>/stores/</td><td>Get a list of stores. Supports pagination (limit, offset), text search, and category filter via query parameters.</td></tr>
+    <tr><td>GET</td><td>/stores/my</td><td>Get stores owned by a specific user. Takes ownerId as a query parameter.</td></tr>
+    <tr><td>GET</td><td>/stores/{id}</td><td>Get full details of one specific store by its ID.</td></tr>
+    <tr><td>POST</td><td>/stores/</td><td>Create a new store. Takes name, category, address, coordinates, and ownerId in the request body.</td></tr>
+    <tr><td>PUT</td><td>/stores/{id}</td><td>Update a store. Only the fields you send get changed. Ownership is verified first.</td></tr>
+    <tr><td>DELETE</td><td>/stores/{id}</td><td>Delete a store. Takes ownerId as a query param. Ownership is verified before deletion.</td></tr>
+    <tr><td>GET</td><td>/products/</td><td>Get all products for a store. Takes storeId as a query parameter.</td></tr>
+    <tr><td>POST</td><td>/products/</td><td>Add a product to a store.</td></tr>
+    <tr><td>PUT</td><td>/products/{id}</td><td>Update a product. Ownership verified first.</td></tr>
+    <tr><td>DELETE</td><td>/products/{id}</td><td>Delete a product. Ownership verified first.</td></tr>
+    <tr><td>GET</td><td>/</td><td>Health check. Returns status: ok. Used by Render to verify the server is alive.</td></tr>
+    <tr><td>GET</td><td>/delete-account</td><td>Returns an HTML page. Required by Google Play Store policy for account deletion requests.</td></tr>
+  </table>
+
+  <h3>Path Parameters vs Query Parameters</h3>
+  <p><strong>Path parameters</strong> go inside the URL and identify a specific resource. If you're working with a specific store, its ID is in the path: /stores/abc123. Removing it would make the URL meaningless.</p>
+  <p><strong>Query parameters</strong> go after a question mark and configure or filter the request. They change what you get back but don't identify the resource itself. Examples: ?limit=10 controls how many results to return; ?category=Food filters by category.</p>
+
+  <h3>The Response Envelope</h3>
+  <p>Every response from your API is wrapped in the same shape — an object with a <em>source</em> field and a <em>data</em> field. The source field says whether the data came from Appwrite directly ("db") or from your in-memory cache ("cache"). This is useful for debugging — if you see stale data, the source field tells you immediately why. Mutation responses (create, update, delete) use a simpler shape with an "ok" field.</p>
+
+  <div class="callout">
+    <strong>Important order note:</strong> In FastAPI, the route for /stores/my must be declared before /stores/{id} in the code. If the dynamic route came first, FastAPI would match the word "my" as a store ID and fail. Route order matters — specific routes before generic ones.
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 4 — APPWRITE
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 4</div>
+  <h2>Appwrite &amp; the TablesDB Migration</h2>
+  <p class="section-intro">What Appwrite is, what broke in v1.8, and how you fixed it without touching the frontend.</p>
+
+  <h3>What is Appwrite?</h3>
+  <p>Appwrite is a Backend-as-a-Service (BaaS). Instead of building a database, an authentication system, and file storage from scratch, Appwrite gives you all three pre-built and hosted in the cloud. You connect to it through an SDK. In Volo, Appwrite handles three things: storing all store and product data, managing user accounts via Google Sign-In, and storing product images.</p>
+
+  <h3>Two Different Roles in Your Project</h3>
+  <p>Appwrite is used in two different ways depending on who is making the call:</p>
+  <ul>
+    <li><strong>Frontend (mobile app):</strong> Uses the Appwrite client SDK for Google Sign-In only. The client SDK has limited permissions — a logged-in user can only access their own data.</li>
+    <li><strong>Backend (FastAPI):</strong> Uses the Appwrite server SDK with an admin API key. This has full read-write access to all data. It handles all database operations — fetching stores, creating products, deleting records.</li>
+  </ul>
+
+  <h3>What Happened in v1.8 — The Breaking Change</h3>
+  <p>Before Appwrite v1.8, the database API was document-based. You called list_documents and get_document, and responses came back with dollar-sign-prefixed system fields like $id, $createdAt, and $updatedAt.</p>
+  <p>Appwrite Cloud automatically upgraded to v1.8, which introduced a new row-based API called TablesDB. The method names changed (list_rows, get_row, create_row, delete_row) and the response format changed — system fields lost their dollar sign prefix and became lowercase: id, createdat, updatedat.</p>
+  <p>The entire frontend was built expecting the old dollar-sign format. When Appwrite upgraded, everything broke overnight — the app couldn't read any store data because the field names had changed.</p>
+
+  <h3>The Fix — The _normalize() Adapter</h3>
+  <p>Instead of rewriting all the frontend code, a translation function was added to the backend. Every response from Appwrite passes through this function before being sent to the app. It loops through every field in the Appwrite response and renames the system fields back to the dollar-sign format the frontend expects. Regular data fields like "name" and "address" are left completely untouched.</p>
+  <p>The result: the frontend continues to receive exactly the same shape it always expected. Zero frontend changes were needed. This pattern — putting a translation layer between two systems that speak different formats — is called the Adapter design pattern.</p>
+
+  <div class="callout">
+    <strong>Interview talking point:</strong> This is a real example of dealing with a third-party breaking change in production. The adapter pattern was chosen because it isolated the fix to one function in the backend, rather than requiring changes across every screen in the mobile app.
+  </div>
+
+  <h3>How Appwrite Queries Work</h3>
+  <p>Appwrite has its own query system. Instead of writing SQL, you build query objects — things like "equal this field to this value," "search this field for this text," "order by this field descending," "limit to 10 results." These are passed as a list to the list_rows call and Appwrite handles the actual filtering on its servers.</p>
+
+  <h3>How Google Sign-In Works</h3>
+  <p>The user taps Sign in with Google. The app opens a browser popup showing Google's login page. The user approves. Google sends confirmation back to Appwrite. Appwrite creates a user session and gives the app a user object with a unique ID. The app stores this ID and sends it as the ownerId in all future API calls. The FastAPI backend never handles login at all — authentication is entirely between the app and Appwrite.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 5 — CACHING
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 5</div>
+  <h2>Caching Strategy</h2>
+  <p class="section-intro">Why caching was added, how it works, and how it stays accurate when data changes.</p>
+
+  <h3>Why Cache at All?</h3>
+  <p>Every time the frontend fetches stores, the backend has to make a network call to Appwrite — a cloud service hosted somewhere else. That round trip takes time. If ten users load the app at the same time and all fetch the same store list, that's ten identical Appwrite calls for the same data. Caching means the backend fetches from Appwrite once, stores the result in memory, and returns it instantly for all subsequent requests — until the data changes or 60 seconds pass. This reduces response time, reduces Appwrite API usage, and improves the experience on Render's free tier where resources are limited.</p>
+
+  <h3>How It Works</h3>
+  <p>The cache is a plain Python dictionary stored in the backend's memory. Each entry stores two things: the actual data, and the timestamp of when it was stored. When a request comes in, the backend first checks the cache. If the data exists and is less than 60 seconds old, it returns it immediately and never contacts Appwrite. If the data doesn't exist or has expired, it calls Appwrite, stores the fresh result in the cache, and returns it.</p>
+
+  <h3>Cache Keys — How Data is Identified</h3>
+  <p>Every unique combination of request parameters gets its own cache entry. A request for stores with category "Food" is cached separately from a request for all stores. A request for page 2 is cached separately from page 1. The key is a string that encodes all the parameters — for example, "stores:10:0:coffee:Food". This means cached results are always specific to the exact request that created them.</p>
+
+  <h3>Cache Invalidation — Keeping Data Accurate</h3>
+  <p>The trickiest part of caching is knowing when to throw away old data. When a store is created, updated, or deleted, any cached store lists are now out of date. The fix is prefix-based invalidation — when something changes, all cache entries whose key starts with "stores:" are deleted at once. This clears every paginated and filtered variant in a single operation. For a specific store's cache entry, that exact key is also deleted. This way, the next request always fetches fresh data from Appwrite.</p>
+
+  <div class="callout">
+    <strong>"There are only two hard things in computer science: cache invalidation and naming things."</strong> Your caching code demonstrates both — TTL handles automatic expiry, and prefix-based invalidation handles correctness after mutations.
+  </div>
+
+  <h3>The source Field</h3>
+  <p>Every API response includes a "source" field that says either "cache" or "db". This is a debugging tool — if you're seeing stale or incorrect data, the source field immediately tells you whether it came from Appwrite (fresh) or from the in-memory cache. This kind of built-in observability is a sign of thoughtful API design.</p>
+
+  <h3>Trade-offs and Limitations</h3>
+  <p>This is an in-process cache — it lives in the memory of the single FastAPI process. This works perfectly on Render's single server instance. The limitation is that if the app were scaled to multiple servers, each server would have its own separate cache and they would go out of sync. The production solution for that scenario would be an external shared cache like Redis — one cache that all server instances read from. For a student project at this scale, the in-process approach is the right pragmatic choice.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 6 — SECURITY
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 6</div>
+  <h2>Authorization &amp; Security</h2>
+  <p class="section-intro">What security is in place, what's missing, and how to talk about it honestly and confidently.</p>
+
+  <h3>Authentication vs Authorization — Know the Difference</h3>
+  <p><strong>Authentication</strong> is proving who you are. In Volo, this is handled entirely by Appwrite — the user signs in with Google and Appwrite confirms their identity and gives them a user ID.</p>
+  <p><strong>Authorization</strong> is checking what you're allowed to do. In Volo, this is handled by the FastAPI backend — before any update or deletion, the backend checks whether the requesting user actually owns the resource they're trying to change.</p>
+
+  <h3>The Ownership Check Pattern</h3>
+  <p>Every endpoint that changes data follows the same three steps: first, fetch the record from Appwrite to confirm it exists. Second, compare the ownerId stored in that record against the ownerId sent in the request. Third, if they don't match, return a 403 Forbidden error and stop. Only if they match does the backend proceed with the change. This prevents user A from deleting user B's store — assuming the ownerId sent in the request is genuine.</p>
+
+  <h3>403 vs 401 — Know the Difference</h3>
+  <p>A 401 Unauthorized means "I don't know who you are — please log in." A 403 Forbidden means "I know who you are, you're just not allowed to do this." Your API correctly uses 403 for ownership failures, because the backend already has an ownerId at that point. The issue is permission, not identity.</p>
+
+  <h3>The Vulnerability — BOLA</h3>
+  <p>The critical security gap is that the backend trusts the ownerId sent by the client without verifying it is genuine. A simple analogy: imagine a security guard who checks your name matches the register, but never asks to see your ID. Anyone who knows a victim's user ID could send it in a request and pass the ownership check.</p>
+  <p>This is called BOLA — Broken Object Level Authorization — and it is number one on the OWASP API Security Top 10. In practice, the risk is lower here because Appwrite user IDs are long random strings (hard to guess), and the app is in closed testing. But it is not production-safe.</p>
+
+  <div class="warn">
+    <strong>The proper fix:</strong> The app should send its Appwrite session token in the Authorization header of every request. The backend should verify that token with Appwrite's server SDK. The verified user ID from that response — not the client-sent ownerId — should be used for the ownership check. This way, user identity is cryptographically verified server-side, not client-declared.
+  </div>
+
+  <h3>What Security IS Done Right</h3>
+  <ul>
+    <li><strong>Secrets in environment variables:</strong> The Appwrite API key and all config values are stored as Render environment variables, never in code. If someone reads the GitHub repo, they get nothing sensitive.</li>
+    <li><strong>No SQL injection risk:</strong> All database access goes through the Appwrite SDK. There are no raw database queries being built from user input.</li>
+    <li><strong>Type validation:</strong> Pydantic rejects malformed input before it reaches business logic. Wrong data types are rejected at the door with a 422 error.</li>
+    <li><strong>HTTPS:</strong> Render provides HTTPS automatically. All traffic between the app and the backend is encrypted.</li>
+    <li><strong>Fetch-before-mutate:</strong> Every delete and update fetches the record first, so you cannot delete a record that doesn't exist.</li>
+  </ul>
+
+  <h3>What Is Missing</h3>
+  <ul>
+    <li>No rate limiting — the API has no throttle on how many requests one client can make.</li>
+    <li>No CORS policy configured — any browser-based client could call the API.</li>
+    <li>No input length limits — Pydantic checks types but not maximum string lengths.</li>
+    <li>No JWT verification — ownerId is trusted from the client, not verified via a signed token.</li>
+  </ul>
+
+  <h3>How to Talk About This in an Interview</h3>
+  <p><em>"The backend has ownership checks — before any mutation I fetch the record and verify the ownerId matches. The current gap is that ownerId is client-declared rather than server-verified via a signed token. The fix is adding Appwrite JWT verification as a FastAPI dependency so user identity comes from a cryptographically verified source, not the request body. I'm aware this is BOLA — OWASP API Top 1 — and it's the next hardening step. For a closed-testing student project with UUID-based IDs, the practical risk is low, but I wouldn't ship this to production without fixing it."</em></p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 7 — FRONTEND
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 7</div>
+  <h2>React Native Frontend</h2>
+  <p class="section-intro">How the app is structured, how the home screen works, and the key technical patterns used.</p>
+
+  <h3>React Native + Expo</h3>
+  <p>React Native lets you build mobile apps using JavaScript and TypeScript. Instead of writing Java for Android or Swift for iOS, you write components in React and React Native compiles them to real native UI elements. Expo is a layer on top that handles the painful parts — building, device permissions, location access, and Play Store publishing — without needing Android Studio.</p>
+
+  <h3>Expo Router — File-Based Routing</h3>
+  <p>Expo Router works like Next.js. The file name determines the screen URL. A file at app/sign-in.tsx becomes the sign-in screen. A file at app/(root)/stores/[id].tsx becomes a dynamic screen where [id] is replaced by an actual store ID. Folders with names in parentheses — like (root) and (tabs) — are organisational groups that don't appear in the URL. The root layout file checks if the user is logged in and redirects to sign-in if not, protecting all inner screens automatically.</p>
+
+  <h3>Debounced Search</h3>
+  <p>When a user types in the search box, the app does not call the API on every single keystroke. Instead, it waits until the user stops typing for 400 milliseconds before firing the request. This is called debouncing. Typing "coffee" fires one API call instead of six. It works by starting a 400ms countdown every time a key is pressed. If another key is pressed before the countdown finishes, the timer resets. The API is only called when the full 400ms passes without any new input.</p>
+
+  <h3>Infinite Scroll Pagination</h3>
+  <p>Stores are loaded in batches of 10. When the user scrolls near the bottom of the list, the app automatically loads the next 10 stores and appends them to the existing list. This is more efficient than loading all stores at once — on launch, only 10 rows are fetched instead of potentially hundreds. The app tracks which page it's on and calculates the offset (how many records to skip) for each request. If a batch returns fewer than 10 stores, the app knows it has reached the end and stops trying to load more.</p>
+
+  <h3>Race Condition Prevention</h3>
+  <p>A race condition happens when two async operations run at the same time and the results arrive in the wrong order. For example: a user types "coffee," then immediately changes to "cafe." Both API calls start. If "coffee" results arrive after "cafe" results, they overwrite the correct data. To prevent this, every new search gets a version number. When results arrive, they check whether they are still the latest request. If a newer request has started since, the old results are silently discarded. Only the most recent request's results are ever shown on screen.</p>
+
+  <h3>Location-Based Distance Sorting</h3>
+  <p>When the user grants location permission, the app sorts stores by distance — nearest first. Getting the user's location requires asking for permission first, then requesting their current GPS coordinates. The distance between the user and each store is calculated using the Haversine formula, which correctly accounts for the Earth's curvature. You cannot just subtract coordinates because the same degree difference covers different physical distances depending on where on the globe you are. The sorted list is recalculated only when the stores data or location changes, not on every screen render, for performance.</p>
+
+  <h3>The API Layer — lib/api.ts</h3>
+  <p>All HTTP calls to the FastAPI backend are centralized in a single file called lib/api.ts. No screen makes fetch calls directly. This means if the backend URL ever changes, there is exactly one place to update it. Each function in this file handles building the URL with the right query parameters, making the fetch call, and unwrapping the response envelope — the rest of the app just receives clean data arrays.</p>
+
+  <h3>Data Validation on the Frontend</h3>
+  <p>Before rendering, every store object is run through a validation function called isValidStore. It checks that the store has an ID, a name, and valid coordinates. Any malformed records from Appwrite are silently filtered out. This defensive approach means a bad record from the database cannot crash the app with a "cannot read property of undefined" error.</p>
+
+  <h3>The Animated Sidebar</h3>
+  <p>The hamburger menu slides in from the left using React Native's Animated API. The animation runs on the native thread — not in JavaScript — which means it stays smooth at 60 frames per second even if the JavaScript thread is busy doing other work. The sidebar slides in when opened and slides back off-screen when closed, with a semi-transparent dark overlay behind it that dismisses it when tapped.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SECTION 8 — DEPLOYMENT
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">Section 8</div>
+  <h2>Deployment &amp; Infrastructure</h2>
+  <p class="section-intro">How the backend, app, and website are deployed and run in the real world.</p>
+
+  <h3>Backend — Render (Free Tier)</h3>
+  <p>The FastAPI backend is deployed on Render, a cloud hosting platform. Render runs the server using uvicorn, an ASGI server for Python. The backend is reachable at https://discount-card-api.onrender.com. On the free tier, the server spins down after a period of inactivity and takes a few seconds to wake up on the next request — this is called a cold start. For a production app, you would upgrade to a paid tier or use a keep-alive ping to prevent this.</p>
+  <p>All secret values — Appwrite endpoint, project ID, API key, database ID, collection IDs — are stored as environment variables in the Render dashboard. They are never in the code. When the server starts, it reads them using os.getenv().</p>
+
+  <h3>Mobile App — EAS Build + Google Play</h3>
+  <p>The app is built and published using Expo's cloud build service, called EAS Build. Instead of needing to set up Android Studio locally, you push your code to Expo's servers and they compile it. The output is an AAB file — Android App Bundle — which is the format Google Play requires for submission.</p>
+  <p>The app is currently in closed testing on Google Play under the package name io.volo.app. Closed testing means only specific testers added by the developer can download and use it. This lets you test on real devices with real Play Store infrastructure before a public launch.</p>
+
+  <h3>Google Maps Integration</h3>
+  <p>The app uses Google Maps for showing store locations. The Google Maps API key is restricted to the app's package name and SHA certificate fingerprint — meaning even if someone extracts the key from the app, they cannot use it from any other app or website. This is the correct way to secure mobile API keys.</p>
+
+  <h3>Website — Static HTML on Vercel</h3>
+  <p>The Volo landing page is a static website built with plain HTML, CSS, and JavaScript — no framework. It lives in the website/ folder of the repository and is deployed to Vercel. Vercel serves it as a static site with a global CDN, so it loads quickly anywhere in the world. The website includes the main landing page, a developer page, and a screenshot gallery of the app.</p>
+
+  <h3>The Delete Account Page</h3>
+  <p>Google Play requires that any app collecting user data must provide a way for users to request account deletion via a publicly accessible URL. A simple HTML page is served directly from the FastAPI backend at /delete-account. It instructs users to email a deletion request. This is the minimum compliance requirement for Play Store listing.</p>
+
+  <h3>Privacy Policy</h3>
+  <p>A privacy policy is required by Google Play for any app that collects user data (which Volo does — it collects Google account info and location). The privacy policy document lives in the repository and is linked from both the app listing and the website footer.</p>
+
+  <table>
+    <tr><th>Component</th><th>Where It Runs</th><th>URL</th></tr>
+    <tr><td>FastAPI Backend</td><td>Render (free tier)</td><td>https://discount-card-api.onrender.com</td></tr>
+    <tr><td>Landing Website</td><td>Vercel</td><td>Deployed from website/ folder</td></tr>
+    <tr><td>Mobile App</td><td>Google Play (closed testing)</td><td>Package: io.volo.app</td></tr>
+    <tr><td>Database + Auth</td><td>Appwrite Cloud</td><td>Managed, no self-hosting</td></tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     JD MATCH
+═══════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-label">JD Alignment — Vara5</div>
+  <h2>How Volo Maps to the Role</h2>
+  <p class="section-intro">An honest analysis of what the JD asks for, what you've already built, and where the gaps are — and why the gaps aren't disqualifying.</p>
+
+  <div class="callout">
+    <strong>The JD says:</strong> "You don't need every line of this — you need to be the kind of person who picks up the missing ones in a weekend." Volo demonstrates exactly that instinct: you shipped a real product, handled a breaking third-party migration under pressure, and made conscious trade-off decisions. That is the signal they're looking for.
+  </div>
+
+  <h3>What You Have — Direct Matches</h3>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>Python (FastAPI) — Backend</strong>
+      <p>Full FastAPI backend built from scratch. Modular routing with APIRouter, Pydantic request validation, HTTPException error handling, environment variable configuration, and deployment on Render. This is production-deployed, not a tutorial project.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>RESTful APIs</strong>
+      <p>Full REST API with correct HTTP verbs, resource-named URLs, proper status codes (200/403/404/422/500), stateless design, and a consistent response envelope. Covers both stores and products with full CRUD.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>React Native — Frontend</strong>
+      <p>Full React Native app using Expo Router, TypeScript, NativeWind (Tailwind). Debounced search, infinite scroll pagination, race condition prevention, location sorting, animated sidebar. Currently live on Google Play in closed testing.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>Auth (OAuth)</strong>
+      <p>Google OAuth via Appwrite. Understood the full OAuth flow — how the app, Appwrite, and Google interact, and how the resulting user session is used for identity in downstream API calls.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>API and Systems Thinking</strong>
+      <p>Designed a multi-tier system from scratch. Understood trust boundaries (client vs server key), cache invalidation strategy, authorization patterns, and how to handle a breaking third-party API migration without touching the frontend.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>Problem-Solving Instinct</strong>
+      <p>Appwrite v1.8 broke the entire data layer in production. Diagnosed the root cause (field name format change), designed a targeted fix (the _normalize adapter), and shipped it without any frontend changes. Real-world debugging under pressure.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon yes">✓</div>
+    <div class="match-content">
+      <strong>Frontend — Tailwind</strong>
+      <p>NativeWind brings Tailwind CSS class names into React Native. Used throughout the app for styling. Also used in the landing website (pure Tailwind-style CSS). The JD lists "Tailwind a plus" — you have it.</p>
+    </div>
+  </div>
+
+  <h3>Partial Matches — You Understand the Concept</h3>
+
+  <div class="match-row">
+    <div class="match-icon partial">~</div>
+    <div class="match-content">
+      <strong>Databases — Appwrite instead of PostgreSQL/Supabase</strong>
+      <p>You worked with a cloud database — schema design, querying, filtering, ordering, pagination. The underlying concepts (collections as tables, documents/rows, query filters) are directly transferable to PostgreSQL. You have not written raw SQL but you understand data modeling and querying patterns.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon partial">~</div>
+    <div class="match-content">
+      <strong>JWT / Token Auth</strong>
+      <p>You understand what JWT-based auth should look like — the app sends a signed token, the backend verifies it server-side, the identity comes from the verified token not the client body. You identified BOLA (OWASP API Top 1) in your own code and know the exact fix. Security awareness without full implementation is still strong signal.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon partial">~</div>
+    <div class="match-content">
+      <strong>Next.js</strong>
+      <p>You used Expo Router which is architecturally identical to Next.js — file-based routing, nested layouts, dynamic routes, route groups. The mental model transfers directly. Next.js adds server-side rendering and API routes, but the routing and component model is the same React you already know.</p>
+    </div>
+  </div>
+
+  <h3>Gaps — Worth Being Honest About</h3>
+
+  <div class="match-row">
+    <div class="match-icon no">✗</div>
+    <div class="match-content">
+      <strong>AI Agents — LangGraph, OpenAI/Anthropic APIs</strong>
+      <p>No AI agents built yet. This is the biggest gap for an "AI-first" role. However — you clearly have the backend and API skills to build agent tools and integrate LLM APIs. The gap is domain knowledge, not engineering fundamentals. This is learnable in a weekend, as the JD acknowledges.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon no">✗</div>
+    <div class="match-content">
+      <strong>Workflow Automation — n8n, Make, Zapier</strong>
+      <p>No workflow automation tools used. These are visual tools for connecting APIs and LLMs without code. Given that you built API integrations in code, the conceptual leap to visual automation tools is small.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon no">✗</div>
+    <div class="match-content">
+      <strong>RAG + Vector Databases — pgvector, Pinecone</strong>
+      <p>No RAG pipelines or embeddings built. This requires understanding how to chunk documents, generate embeddings, store them in a vector database, and retrieve semantically similar results. A self-study project on this would directly address the gap.</p>
+    </div>
+  </div>
+
+  <div class="match-row">
+    <div class="match-icon no">✗</div>
+    <div class="match-content">
+      <strong>Node.js / Express / TypeScript (Backend)</strong>
+      <p>Your backend is Python. Node.js/Express is the other backend listed in the JD. You write TypeScript in the frontend, so the language is not new — applying it on the backend with Express is a framework-level gap, not a language gap.</p>
+    </div>
+  </div>
+
+  <h3>How to Frame This in the Interview</h3>
+  <p>The JD explicitly says you don't need everything — you need to be someone who picks up the gaps quickly. Your answer to the gap questions should sound like this:</p>
+  <p><em>"I haven't built an AI agent yet, but I understand function calling and tool use conceptually, and I have the backend foundations — FastAPI, REST APIs, external SDK integration — that agent tools are built on. I'd start with a simple LangChain agent this weekend and build from there. The Appwrite migration showed me I can adapt fast when something breaks or changes."</em></p>
+
+  <table>
+    <tr><th>JD Requirement</th><th>Status</th><th>Evidence</th></tr>
+    <tr><td>Python / FastAPI</td><td>✅ Direct match</td><td>Full production backend</td></tr>
+    <tr><td>RESTful APIs</td><td>✅ Direct match</td><td>Full CRUD API, correct HTTP design</td></tr>
+    <tr><td>React Native</td><td>✅ Direct match</td><td>Live app on Play Store</td></tr>
+    <tr><td>OAuth / Auth</td><td>✅ Direct match</td><td>Google OAuth via Appwrite</td></tr>
+    <tr><td>Tailwind</td><td>✅ Direct match</td><td>NativeWind throughout app</td></tr>
+    <tr><td>Systems thinking</td><td>✅ Direct match</td><td>3-tier architecture, caching, security analysis</td></tr>
+    <tr><td>Next.js</td><td>~ Transferable</td><td>Expo Router = same mental model</td></tr>
+    <tr><td>PostgreSQL / Supabase</td><td>~ Transferable</td><td>Appwrite — same querying concepts</td></tr>
+    <tr><td>JWT verification</td><td>~ Partial</td><td>Know the pattern, not yet implemented</td></tr>
+    <tr><td>AI Agents / LangGraph</td><td>❌ Gap</td><td>No prior builds — learnable fast</td></tr>
+    <tr><td>n8n / Make / Zapier</td><td>❌ Gap</td><td>No workflow automation — learnable fast</td></tr>
+    <tr><td>RAG / pgvector</td><td>❌ Gap</td><td>No vector DB work — learnable fast</td></tr>
+    <tr><td>Node.js / Express</td><td>❌ Gap</td><td>Know TypeScript, need Express exposure</td></tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     BACK COVER
+═══════════════════════════════════════════ -->
+<div class="page page-break" style="text-align:center; padding-top: 40px;">
+  <div style="width:48px;height:4px;background:#0061FF;border-radius:10px;margin:0 auto 18px;"></div>
+  <h2 style="font-size:28px;">Good luck.</h2>
+  <p style="color:#888;margin-top:8px;font-size:14px;">You built a real product. Talk about it like one.</p>
+  <div style="margin-top:24px;color:#aaa;font-size:12px;line-height:1.9;">
+    Vinayak Koli &nbsp;·&nbsp; vinayak23597@iiitd.ac.in<br/>
+    linkedin.com/in/vinayak-koli-940b0728b<br/>
+    vinaytasensei.vercel.app
+  </div>
+</div>
+
+</body>
+</html>
